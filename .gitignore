@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Acervo ###
+# senhas e ajustes da maquina
+src/main/resources/application-local.properties
+# arquivos do acervo (as pastas sao recriadas pelo sistema ao iniciar)
+/Estrutura de Pastas/*
+!/Estrutura de Pastas/LEIA-ME.txt

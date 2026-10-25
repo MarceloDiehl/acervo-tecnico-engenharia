@@ -1,0 +1,11 @@
+# Copie este arquivo para application-local.properties (mesma pasta) e preencha.
+# O application-local.properties fica fora do Git.
+
+spring.datasource.username=dipred_user
+spring.datasource.password=SENHA_DO_MYSQL
+
+# Senha do primeiro gestor ("admin"), criado quando a tabela de usuarios esta vazia
+acervo.admin.senha-inicial=SENHA_DO_ADMIN
+
+# No servidor, apontar para a pasta definitiva dos arquivos, ex.:
+# acervo.arquivos.raiz=D:/Acervo Tecnico

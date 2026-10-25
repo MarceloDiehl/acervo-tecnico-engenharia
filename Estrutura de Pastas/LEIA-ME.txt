@@ -1,0 +1,20 @@
+Estrutura de Pastas · Acervo Técnico de Engenharia · DIPRED-DMAN · TJRS
+
+Raiz onde o sistema grava os arquivos do acervo (propriedade acervo.arquivos.raiz).
+Os arquivos NÃO ficam no banco de dados: o banco guarda só o diretório e o nome do arquivo.
+
+  acervo/<PRÉDIO>/<DISCIPLINA>/    arquivos do acervo, já renomeados pelo sistema
+                                   ex.: acervo/POA-F-1/ELETRICA/POA-F-1-ELE-ILU-PRA-00007-R01.pdf
+  temporario/                      recebimento dos envios; o arquivo sai daqui quando a inclusão
+                                   é gravada no banco (não guardar nada aqui)
+
+Pastas de disciplina: ARQUITETURA, CIVIL, ELETRICA, TELECOMUNICACOES, MECANICA.
+Pastas de prédio: o código do prédio (tabela predios).
+
+Ao iniciar, o sistema confere esta estrutura e cria as pastas que faltarem
+(por exemplo, quando um prédio novo é cadastrado no banco).
+
+Regras:
+  - não renomear nem mover arquivos à mão: o caminho está gravado no banco;
+  - a correção de classificação (gestor) renomeia e move os arquivos automaticamente;
+  - a exclusão vai para a lixeira do sistema: o arquivo continua aqui e pode ser restaurado.

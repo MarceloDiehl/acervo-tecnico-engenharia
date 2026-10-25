@@ -1,19 +1,30 @@
 /* Acervo Técnico de Engenharia · regras e estado das telas (JavaScript puro) */
 var EXTS = ['pdf', 'dwg', 'dxf', 'dwf', 'rvt', 'ifc', 'skp', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'tif', 'tiff', 'kmz', 'zip'];
-var TIPOS = {"PRA": "Prancha", "MEM": "Memorial descritivo", "MC": "Memória de cálculo", "ET": "Especificação técnica", "LIS": "Lista de materiais e quantitativos", "RDO": "Relatório diário de obra", "MED": "Medição", "CRO": "Cronograma", "TRB": "Termo de recebimento", "LAU": "Laudo", "REL": "Relatório técnico", "PT": "Parecer / nota técnica", "POP": "Procedimento", "PMN": "Plano de manutenção", "MAN": "Manual / catálogo técnico", "ART": "ART/RRT", "ORC": "Orçamento", "TR": "Termo de referência", "OS": "Ordem de serviço", "OF": "Ofício", "ATA": "Ata", "ALV": "Alvará / licença"};
-var NATUREZA = {"PRA": "Projeto", "MEM": "Projeto", "MC": "Projeto", "ET": "Projeto", "LIS": "Projeto", "RDO": "Execução", "MED": "Execução", "CRO": "Execução", "TRB": "Execução", "LAU": "Manutenção e inspeção", "REL": "Manutenção e inspeção", "PT": "Manutenção e inspeção", "POP": "Manutenção e inspeção", "PMN": "Manutenção e inspeção", "MAN": "Manutenção e inspeção", "ART": "Administrativo", "ORC": "Administrativo", "TR": "Administrativo", "OS": "Administrativo", "OF": "Administrativo", "ATA": "Administrativo", "ALV": "Administrativo"};
 var NATUREZAS = ["Projeto", "Execução", "Manutenção e inspeção", "Administrativo"];
-var AREAS = {"ADM": "Administração", "CTR": "Contratos", "FIS": "Fiscalização", "MNT": "Manutenção", "OBR": "Obras", "OPR": "Operação", "PLA": "Planejamento", "PRO": "Projetos", "SEG": "Segurança"};
-var DISCS = {"ARQ": "Arquitetura", "CIV": "Civil", "ELE": "Elétrica", "TEL": "Telecomunicações", "MEC": "Mecânica"};
-var SISTEMAS = {"ARQ": {"EDI": "Projeto de edificação", "LAY": "Layout interno"}, "CIV": {"EST": "Estruturas", "OBR": "Obras civis", "GUT": "Vistoria"}, "ELE": {"ENE": "Energia e distribuição", "ILU": "Iluminação e tomadas", "SPDA": "SPDA"}, "TEL": {"LOG": "Rede lógica", "TEL": "Telefonia", "CFTV": "CFTV", "AV": "Áudio, vídeo e automação"}, "MEC": {"CLI": "Climatização", "ELE": "Elevadores", "GMG": "Gerador"}};
-var SIS_DICA = {"ARQ": {"EDI": "plantas, cortes, elevações, fachadas, esquadrias, detalhamentos, paisagismo, restauro", "LAY": "mobiliário, divisórias, comunicação visual, acessibilidade"}, "CIV": {"EST": "fundações, contenções, topografia, sondagem, recuperação estrutural", "OBR": "alvenaria, pisos, forros, pintura, cobertura, impermeabilização, calçadas, muros", "GUT": "vistoria predial, matriz GUT, inspeção geral do prédio"}, "ELE": {"ENE": "entrada, subestação, no-break, quadros", "ILU": "circuitos de baixa tensão", "SPDA": "inclui aterramento"}, "TEL": {"LOG": "cabeamento, racks, wi-fi", "CFTV": "câmeras, gravadores, controle de acesso, alarme de intrusão", "AV": "salas de audiência, videoconferência, automação predial"}, "MEC": {"CLI": "ar-condicionado, ventilação, exaustão", "ELE": "inclui plataformas elevatórias", "GMG": "grupo motor-gerador, tanque de combustível, quadro de transferência"}};
-var SIS_ORDEM = {"ARQ": ["EDI", "LAY"], "CIV": ["EST", "OBR", "GUT"], "ELE": ["ENE", "ILU", "SPDA"], "TEL": ["LOG", "TEL", "CFTV", "AV"], "MEC": ["CLI", "ELE", "GMG"]};
-var FASE_AUTO = { 'Execução': 'OBR', 'Manutenção e inspeção': 'MAN', 'Administrativo': 'NA' };
-function faseAuto(t) { return t ? (FASE_AUTO[NATUREZA[t]] || '') : ''; }
-var TIPOS_REGISTRO = ['ATA', 'OF', 'ART', 'RDO', 'MED', 'ALV', 'TRB', 'OS'];
+/* catálogos: vêm do banco (GET /api/catalogos) e são preenchidos por carregarCatalogos() antes de montar a tela */
+var TIPOS = {}, NATUREZA = {}, DISCS = {}, SISTEMAS = {}, SIS_DICA = {}, SIS_ORDEM = {}, FASES = {}, PREDIOS = {};
+var TIPOS_REGISTRO = [], PREDIO_LISTA = [], ETAPA_FIXA = {};
+function carregarCatalogos(c) {
+  c.tipos.forEach(function (t) {
+    TIPOS[t.codigo] = t.nome; NATUREZA[t.codigo] = t.natureza;
+    if (t.registro) TIPOS_REGISTRO.push(t.codigo);
+    if (t.etapaFixa) ETAPA_FIXA[t.codigo] = t.etapaFixa;
+  });
+  c.disciplinas.forEach(function (d) { DISCS[d.codigo] = d.nome; SISTEMAS[d.codigo] = {}; SIS_DICA[d.codigo] = {}; SIS_ORDEM[d.codigo] = []; });
+  c.assuntos.forEach(function (a) {
+    if (!SISTEMAS[a.disciplina]) return;
+    SISTEMAS[a.disciplina][a.codigo] = a.nome;
+    if (a.dica) SIS_DICA[a.disciplina][a.codigo] = a.dica;
+    SIS_ORDEM[a.disciplina].push(a.codigo);
+  });
+  c.etapas.forEach(function (e) { FASES[e.codigo] = e.nome; });
+  c.predios.forEach(function (p) { PREDIOS[p.codigo] = p.nome; PREDIO_LISTA.push({ cod: p.codigo, nome: p.nome, chave: semAcento(p.nome + ' ' + p.codigo) }); });
+  PREDIO_LISTA.sort(function (a, b) { return a.nome.localeCompare(b.nome, 'pt-BR'); });
+}
+/* etapa definida pelo tipo de documento (Execução, Manutenção e inspeção, Administrativo) */
+function faseAuto(t) { return t ? (ETAPA_FIXA[t] || '') : ''; }
 function statusPadrao(t) { return TIPOS_REGISTRO.indexOf(t) >= 0 ? 'Aprovado' : 'Em elaboração'; }
 function nomeSis(d, k) { return (SISTEMAS[d] && SISTEMAS[d][k]) || k || ''; }
-var FASES = {"EST": "Estudo Preliminar", "ANT": "Anteprojeto", "BAS": "Projeto Básico", "EXE": "Projeto Executivo", "OBR": "Obra", "ASB": "As Built", "MAN": "Uso e Manutenção", "NA": "Não se Aplica"};
 var CONTATO_SIGILO = 'ao gestor do acervo técnico do DIPRED-DMAN';
 var PALAVRAS_MINUSCULAS = ['a', 'o', 'as', 'os', 'e', 'de', 'da', 'do', 'das', 'dos', 'em', 'no', 'na', 'nos', 'nas', 'para', 'por', 'com', 'ou', 'à', 'ao'];
 function tituloCaso(t) {
@@ -29,13 +40,9 @@ function nomePredio(cod) {
   return 'Foro da Comarca de ' + n;
 }
 var USOS = { F: 'Foro', A: 'Administrativo', Q: 'Arquivo', O: 'Em obra', S: 'Sem uso', X: 'Terreno' };
-var PREDIOS = {"AGU-F-1": "Agudo", "ALE-F-1": "Alegrete", "ALV-F-1": "Alvorada", "APR-F-1": "Antônio Prado", "AME-F-1": "Arroio do Meio", "ATI-F-1": "Arroio do Tigre", "AGR-F-1": "Arroio Grande", "ARV-F-1": "Arvorezinha", "APE-F-1": "Augusto Pestana", "BAG-F-1": "Bagé", "BRI-S-1": "Barra do Ribeiro (Antigo)", "BRI-F-1": "Barra do Ribeiro (Novo)", "BGO-F-1": "Bento Gonçalves", "BJE-F-1": "Bom Jesus", "BUT-F-1": "Butiá", "CSU-S-1": "Caçapava do Sul (Antigo)", "CSU-F-1": "Caçapava do Sul (Novo)", "CAC-F-1": "Cacequi", "CSU-F-2": "Cachoeira do Sul", "CAC-F-2": "Cachoeirinha", "CAM-F-1": "Camaquã", "CMI-F-1": "Campina das Missões", "CBO-F-1": "Campo Bom", "CNO-F-1": "Campo Novo", "CAN-S-1": "Candelária (2º pav. BB)", "CAN-F-1": "Candelária (Novo)", "CAN-F-2": "Canela", "CAN-F-3": "Canguçu", "CAN-F-4": "Canoas", "CCA-F-1": "Capão da Canoa (Novo)", "CAR-F-1": "Carazinho", "CBA-F-1": "Carlos Barbosa", "CAS-F-1": "Casca", "CAT-F-1": "Catuípe (Novo)", "CSU-F-3": "Caxias do Sul", "CLA-F-1": "Cerro Largo (Novo)", "CHA-F-1": "Charqueadas", "CON-F-1": "Constantina", "CBI-F-1": "Coronel Bicaco", "CRI-F-1": "Crissiumal", "CAL-F-1": "Cruz Alta", "DIR-F-1": "Dois Irmãos", "DPE-F-1": "Dom Pedrito", "ESU-X-1": "Eldorado do Sul (DARQ) (TERRENO)", "ESU-F-1": "Eldorado do Sul (Novo)", "ENC-F-1": "Encantado", "ESU-F-2": "Encruzilhada do Sul", "ERE-F-1": "Erechim", "ESP-F-1": "Espumoso (Novo)", "EVE-F-1": "Estância Velha", "EST-F-1": "Esteio", "EST-O-1": "Esteio (Novo)", "EST-F-2": "Estrela", "FAR-F-1": "Farroupilha", "FSO-S-1": "Faxinal do Soturno (2º andar BB)", "FSO-F-1": "Faxinal do Soturno (Novo)", "FEL-F-1": "Feliz", "FCU-F-1": "Flores da Cunha", "FWE-F-1": "Frederico Westphalen", "GAR-F-1": "Garibaldi", "GAU-S-1": "Gaurama (Antigo)", "GAU-F-1": "Gaurama (Novo)", "GCA-F-1": "General Câmara", "GVA-F-1": "Getúlio Vargas", "GIR-F-1": "Giruá", "GRA-F-1": "Gramado", "GRA-F-2": "Gravataí", "GUA-F-1": "Guaíba", "GUA-F-2": "Guaporé", "GMI-F-1": "Guarani das Missões", "HER-F-1": "Herval", "HER-X-1": "Herval (TERRENO)", "HOR-F-1": "Horizontina", "IBI-F-1": "Ibirubá", "IGR-F-1": "Igrejinha", "IJU-F-1": "Ijuí", "IRA-F-1": "Iraí", "ITA-F-1": "Itaqui", "IVO-F-1": "Ivoti", "JAG-F-1": "Jaguarão", "JAG-S-1": "Jaguari (2º pav. BB)", "JAG-F-2": "Jaguari (Novo)", "JCA-S-1": "Júlio de Castilhos (Antigo)", "JCA-F-1": "Júlio de Castilhos (Novo)", "LVE-F-1": "Lagoa Vermelha", "LAJ-F-1": "Lajeado", "LSU-F-1": "Lavras do Sul", "MAR-F-1": "Marau", "MAR-X-1": "Marau (TERRENO)", "MRA-F-1": "Marcelino Ramos", "MON-F-1": "Montenegro", "MOS-F-1": "Mostardas", "NMT-F-1": "Não-Me-Toque", "NON-F-1": "Nonoai", "NPE-F-1": "Nova Petrópolis", "NPR-F-1": "Nova Prata", "NHA-F-1": "Novo Hamburgo", "OSO-F-1": "Osório", "PSU-F-1": "Palmares do Sul", "PMI-F-1": "Palmeira das Missões", "PMI-X-1": "Palmeira das Missões (TERRENO)", "PAN-F-1": "Panambi", "PAR-F-1": "Parobé", "PFU-F-1": "Passo Fundo (Criminal)", "PFU-F-2": "Passo Fundo (Cível)", "PFU-F-3": "Passo Fundo - 4ª Auditoria Militar", "POS-F-1": "Pedro Osório", "PEL-F-1": "Pelotas", "PMA-F-1": "Pinheiro Machado", "PIR-F-1": "Piratini (2º pav. BB)", "PLA-F-1": "Planalto", "POR-F-1": "Portão", "POA-Q-1": "Porto Alegre - DARQ A (Administrativo)", "POA-Q-2": "Porto Alegre - DARQ B", "POA-A-1": "Porto Alegre - Ed. Glicério Alves", "POA-Q-3": "Porto Alegre - Arquivo Judicial - Assis Brasil", "POA-Q-4": "Porto Alegre - Arquivo Judicial - AERO I", "POA-Q-5": "Porto Alegre - Arquivo Judicial - AERO II", "POA-Q-6": "Porto Alegre - Depósito Judicial - Navegantes", "POA-A-2": "Porto Alegre - CJUD", "POA-A-3": "Porto Alegre - CIACA", "POA-Q-7": "Porto Alegre - Departamento de Artes Gráficas", "POA-A-4": "Porto Alegre - Departamento de Material e Patrimônio - Tenente Ary Tarragô", "POA-A-5": "Porto Alegre - Departamento de Material e Patrimônio - Madre Maria Selima", "POA-A-6": "Porto Alegre - Equipe de transportes", "POA-F-1": "Porto Alegre - Foro Central - Prédio 1", "POA-F-2": "Porto Alegre - Antiga Creche", "POA-F-3": "Porto Alegre - Foro Central - Prédio 2", "POA-F-4": "Porto Alegre - Central de Justiça (TERRENO)", "POA-F-5": "Porto Alegre - Foro Regional da Restinga", "POA-X-1": "Porto Alegre - Foro Regional da Restinga (TERRENO)", "POA-F-6": "Porto Alegre - Foro Regional da Tristeza", "POA-F-7": "Porto Alegre - Foro Regional do Alto Petrópolis", "POA-F-8": "Porto Alegre - Foro Regional do Partenon", "POA-F-9": "Porto Alegre - Foro Regional do Sarandi", "POA-A-7": "Porto Alegre - NUGESP (Novo)", "POA-A-8": "Porto Alegre - Palácio da Justiça", "POA-A-9": "Porto Alegre - Tribunal de Justiça", "POA-A-10": "Porto Alegre - Tribunal de Justiça (Anexo)", "POA-A-11": "Porto Alegre - Tribunal de Justiça Militar", "POA-A-12": "Porto Alegre - 2ª Auditoria Militar", "POA-A-13": "Porto Alegre - Aeroporto", "POA-A-14": "Porto Alegre - Estádio Arena", "POA-A-15": "Porto Alegre - Estádio Beira Rio", "PXA-F-1": "Porto Xavier", "QUA-F-1": "Quaraí", "RSE-F-1": "Restinga Seca", "RGR-F-1": "Rio Grande (Novo)", "RPA-F-1": "Rio Pardo", "RBO-F-1": "Rodeio Bonito", "RAL-F-1": "Ronda Alta", "RSU-F-1": "Rosário do Sul", "SJA-F-1": "Salto do Jacuí", "SAN-F-1": "Sananduva", "SBS-F-1": "Santa Bárbara do Sul", "SCS-F-1": "Santa Cruz do Sul", "SMA-F-1": "Santa Maria - Alameda Buenos Aires 201", "SMA-F-2": "Santa Maria - Alameda Buenos Aires 97", "SRO-F-1": "Santa Rosa", "SVP-F-1": "Santa Vitória do Palmar", "SLI-F-1": "Santana do Livramento", "SAN-F-2": "Santiago", "SAN-F-3": "Santo Ângelo", "SAP-F-1": "Santo Antônio da Patrulha", "SAM-F-1": "Santo Antônio das Missões", "SAU-F-1": "Santo Augusto", "SAU-X-1": "Santo Augusto (TERRENO)", "SCR-F-1": "Santo Cristo", "SBO-F-1": "São Borja", "SFA-F-1": "São Francisco de Assis", "SFA-X-1": "São Francisco de Assis (TERRENO)", "SFP-F-1": "São Francisco de Paula", "SGA-F-1": "São Gabriel", "SJE-F-1": "São Jerônimo", "SJN-F-1": "São José do Norte", "SJO-F-1": "São José do Ouro (Novo)", "SLE-F-1": "São Leopoldo", "SLS-F-1": "São Lourenço do Sul", "SLG-F-1": "São Luiz Gonzaga", "SMA-F-3": "São Marcos", "SPS-F-1": "São Pedro do Sul", "SSC-F-1": "São Sebastião do Caí", "SSE-F-1": "São Sepé (Antigo)", "SSE-O-1": "São Sepé (Novo)", "SVA-F-1": "São Valentim", "SVS-F-1": "São Vicente do Sul", "SAP-F-2": "Sapiranga", "SSU-F-1": "Sapucaia do Sul", "SAR-F-1": "Sarandi", "SEB-F-1": "Seberi", "SOB-S-1": "Sobradinho (2º pav. BB)", "SOB-F-1": "Sobradinho (Novo)", "SOL-F-1": "Soledade", "TAP-F-1": "Tapejara (Novo)", "TAP-F-2": "Tapera", "TAP-F-3": "Tapes", "TAQ-F-1": "Taquara", "TAQ-F-2": "Taquari", "TPO-F-1": "Tenente Portela", "TAR-F-1": "Terra de Areia", "TEU-F-1": "Teutônia", "TOR-F-1": "Torres", "TRA-F-1": "Tramandaí - Cível", "TRA-F-2": "Tramandaí - Criminal", "TCO-F-1": "Três Coroas", "TMA-F-1": "Três de Maio", "TPA-F-1": "Três Passos", "TRI-F-1": "Triunfo", "TUC-F-1": "Tucunduva", "TUP-F-1": "Tupanciretã", "URU-F-1": "Uruguaiana", "VAC-F-1": "Vacaria", "VAI-F-1": "Venâncio Aires", "VCR-F-1": "Vera Cruz", "VER-F-1": "Veranópolis", "VIA-F-1": "Viamão", "VIA-F-2": "Viamão (Anexo)"};
-var PREDIO_ID = {"AGU-F-1": "IMV-0001", "ALE-F-1": "IMV-0002", "ALV-F-1": "IMV-0003", "APR-F-1": "IMV-0004", "AME-F-1": "IMV-0005", "ATI-F-1": "IMV-0006", "AGR-F-1": "IMV-0007", "ARV-F-1": "IMV-0008", "APE-F-1": "IMV-0009", "BAG-F-1": "IMV-0010", "BRI-S-1": "IMV-0011", "BRI-F-1": "IMV-0012", "BGO-F-1": "IMV-0013", "BJE-F-1": "IMV-0014", "BUT-F-1": "IMV-0015", "CSU-S-1": "IMV-0016", "CSU-F-1": "IMV-0017", "CAC-F-1": "IMV-0018", "CSU-F-2": "IMV-0019", "CAC-F-2": "IMV-0020", "CAM-F-1": "IMV-0021", "CMI-F-1": "IMV-0022", "CBO-F-1": "IMV-0023", "CNO-F-1": "IMV-0024", "CAN-S-1": "IMV-0025", "CAN-F-1": "IMV-0026", "CAN-F-2": "IMV-0027", "CAN-F-3": "IMV-0028", "CAN-F-4": "IMV-0029", "CCA-F-1": "IMV-0030", "CAR-F-1": "IMV-0031", "CBA-F-1": "IMV-0032", "CAS-F-1": "IMV-0033", "CAT-F-1": "IMV-0034", "CSU-F-3": "IMV-0035", "CLA-F-1": "IMV-0036", "CHA-F-1": "IMV-0037", "CON-F-1": "IMV-0038", "CBI-F-1": "IMV-0039", "CRI-F-1": "IMV-0040", "CAL-F-1": "IMV-0041", "DIR-F-1": "IMV-0042", "DPE-F-1": "IMV-0043", "ESU-X-1": "IMV-0044", "ESU-F-1": "IMV-0045", "ENC-F-1": "IMV-0046", "ESU-F-2": "IMV-0047", "ERE-F-1": "IMV-0048", "ESP-F-1": "IMV-0049", "EVE-F-1": "IMV-0050", "EST-F-1": "IMV-0051", "EST-O-1": "IMV-0052", "EST-F-2": "IMV-0053", "FAR-F-1": "IMV-0054", "FSO-S-1": "IMV-0055", "FSO-F-1": "IMV-0056", "FEL-F-1": "IMV-0057", "FCU-F-1": "IMV-0058", "FWE-F-1": "IMV-0059", "GAR-F-1": "IMV-0060", "GAU-S-1": "IMV-0061", "GAU-F-1": "IMV-0062", "GCA-F-1": "IMV-0063", "GVA-F-1": "IMV-0064", "GIR-F-1": "IMV-0065", "GRA-F-1": "IMV-0066", "GRA-F-2": "IMV-0067", "GUA-F-1": "IMV-0068", "GUA-F-2": "IMV-0069", "GMI-F-1": "IMV-0070", "HER-F-1": "IMV-0071", "HER-X-1": "IMV-0072", "HOR-F-1": "IMV-0073", "IBI-F-1": "IMV-0074", "IGR-F-1": "IMV-0075", "IJU-F-1": "IMV-0076", "IRA-F-1": "IMV-0077", "ITA-F-1": "IMV-0078", "IVO-F-1": "IMV-0079", "JAG-F-1": "IMV-0080", "JAG-S-1": "IMV-0081", "JAG-F-2": "IMV-0082", "JCA-S-1": "IMV-0083", "JCA-F-1": "IMV-0084", "LVE-F-1": "IMV-0085", "LAJ-F-1": "IMV-0086", "LSU-F-1": "IMV-0087", "MAR-F-1": "IMV-0088", "MAR-X-1": "IMV-0089", "MRA-F-1": "IMV-0090", "MON-F-1": "IMV-0091", "MOS-F-1": "IMV-0092", "NMT-F-1": "IMV-0093", "NON-F-1": "IMV-0094", "NPE-F-1": "IMV-0095", "NPR-F-1": "IMV-0096", "NHA-F-1": "IMV-0097", "OSO-F-1": "IMV-0098", "PSU-F-1": "IMV-0099", "PMI-F-1": "IMV-0100", "PMI-X-1": "IMV-0101", "PAN-F-1": "IMV-0102", "PAR-F-1": "IMV-0103", "PFU-F-1": "IMV-0104", "PFU-F-2": "IMV-0105", "PFU-F-3": "IMV-0106", "POS-F-1": "IMV-0107", "PEL-F-1": "IMV-0108", "PMA-F-1": "IMV-0109", "PIR-F-1": "IMV-0110", "PLA-F-1": "IMV-0111", "POR-F-1": "IMV-0112", "POA-Q-1": "IMV-0113", "POA-Q-2": "IMV-0114", "POA-A-1": "IMV-0115", "POA-Q-3": "IMV-0116", "POA-Q-4": "IMV-0117", "POA-Q-5": "IMV-0118", "POA-Q-6": "IMV-0119", "POA-A-2": "IMV-0120", "POA-A-3": "IMV-0121", "POA-Q-7": "IMV-0122", "POA-A-4": "IMV-0123", "POA-A-5": "IMV-0124", "POA-A-6": "IMV-0125", "POA-F-1": "IMV-0126", "POA-F-2": "IMV-0127", "POA-F-3": "IMV-0128", "POA-F-4": "IMV-0129", "POA-F-5": "IMV-0130", "POA-X-1": "IMV-0131", "POA-F-6": "IMV-0132", "POA-F-7": "IMV-0133", "POA-F-8": "IMV-0134", "POA-F-9": "IMV-0135", "POA-A-7": "IMV-0136", "POA-A-8": "IMV-0137", "POA-A-9": "IMV-0138", "POA-A-10": "IMV-0139", "POA-A-11": "IMV-0140", "POA-A-12": "IMV-0141", "POA-A-13": "IMV-0142", "POA-A-14": "IMV-0143", "POA-A-15": "IMV-0144", "PXA-F-1": "IMV-0145", "QUA-F-1": "IMV-0146", "RSE-F-1": "IMV-0147", "RGR-F-1": "IMV-0148", "RPA-F-1": "IMV-0149", "RBO-F-1": "IMV-0150", "RAL-F-1": "IMV-0151", "RSU-F-1": "IMV-0152", "SJA-F-1": "IMV-0153", "SAN-F-1": "IMV-0154", "SBS-F-1": "IMV-0155", "SCS-F-1": "IMV-0156", "SMA-F-1": "IMV-0157", "SMA-F-2": "IMV-0158", "SRO-F-1": "IMV-0159", "SVP-F-1": "IMV-0160", "SLI-F-1": "IMV-0161", "SAN-F-2": "IMV-0162", "SAN-F-3": "IMV-0163", "SAP-F-1": "IMV-0164", "SAM-F-1": "IMV-0165", "SAU-F-1": "IMV-0166", "SAU-X-1": "IMV-0167", "SCR-F-1": "IMV-0168", "SBO-F-1": "IMV-0169", "SFA-F-1": "IMV-0170", "SFA-X-1": "IMV-0171", "SFP-F-1": "IMV-0172", "SGA-F-1": "IMV-0173", "SJE-F-1": "IMV-0174", "SJN-F-1": "IMV-0175", "SJO-F-1": "IMV-0176", "SLE-F-1": "IMV-0177", "SLS-F-1": "IMV-0178", "SLG-F-1": "IMV-0179", "SMA-F-3": "IMV-0180", "SPS-F-1": "IMV-0181", "SSC-F-1": "IMV-0182", "SSE-F-1": "IMV-0183", "SSE-O-1": "IMV-0184", "SVA-F-1": "IMV-0185", "SVS-F-1": "IMV-0186", "SAP-F-2": "IMV-0187", "SSU-F-1": "IMV-0188", "SAR-F-1": "IMV-0189", "SEB-F-1": "IMV-0190", "SOB-S-1": "IMV-0191", "SOB-F-1": "IMV-0192", "SOL-F-1": "IMV-0193", "TAP-F-1": "IMV-0194", "TAP-F-2": "IMV-0195", "TAP-F-3": "IMV-0196", "TAQ-F-1": "IMV-0197", "TAQ-F-2": "IMV-0198", "TPO-F-1": "IMV-0199", "TAR-F-1": "IMV-0200", "TEU-F-1": "IMV-0201", "TOR-F-1": "IMV-0202", "TRA-F-1": "IMV-0203", "TRA-F-2": "IMV-0204", "TCO-F-1": "IMV-0205", "TMA-F-1": "IMV-0206", "TPA-F-1": "IMV-0207", "TRI-F-1": "IMV-0208", "TUC-F-1": "IMV-0209", "TUP-F-1": "IMV-0210", "URU-F-1": "IMV-0211", "VAC-F-1": "IMV-0212", "VAI-F-1": "IMV-0213", "VCR-F-1": "IMV-0214", "VER-F-1": "IMV-0215", "VIA-F-1": "IMV-0216", "VIA-F-2": "IMV-0217"};
 function isoBR(t) { var m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(t || ''); return m ? m[3] + '-' + m[2] + '-' + m[1] : ''; }
 function tsBR(t) { var m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(t || ''); return m ? new Date(+m[3], +m[2] - 1, +m[1]).getTime() : 0; }
 function semAcento(t) { return String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
-var PREDIO_LISTA = Object.keys(PREDIOS).map(function (k) { return { cod: k, nome: PREDIOS[k], chave: semAcento(PREDIOS[k] + ' ' + k) }; })
-  .sort(function (a, b) { return a.nome.localeCompare(b.nome, 'pt-BR'); });
 
 var STATUS_ORDEM = ['Em elaboração', 'Aprovado', 'Cancelado'];
 var STATUS_NOMES = {};
@@ -81,98 +88,18 @@ function partes(texto, tokens) {
     atual.t += texto[k];
   }
   return out.map(function (x) { return { t: x.t, estilo: x.m ? MARCA : '' }; });
-}
-var PASTAS_DISC = { ARQ: 'ARQUITETURA', CIV: 'CIVIL', ELE: 'ELETRICA', HID: 'HIDRAULICA', INC: 'PPCI', TEL: 'TELECOM', MEC: 'CLIMATIZACAO', MUL: 'GERAL' };
-var PASTAS_DISC_OLD = { ARQ: 'ARQUITETURA', ELE: 'ELETRICA', HID: 'HIDRAULICA', CLI: 'CLIMATIZACAO', INC: 'PPCI', SDA: 'PPCI', LOG: 'REDE LOGICA', EST: 'ESTRUTURAL', CIV: 'CIVIL', SPDA: 'SPDA', CFT: 'SEGURANCA', GER: 'GERAL', TOP: 'TOPOGRAFIA', GEO: 'SONDAGEM', AUT: 'AUTOMACAO', MEC: 'MECANICA', GAS: 'GASES', TEL: 'TELEFONIA', ORC: 'ORCAMENTOS' };
-var ORDEM_TEXTO = {
+}var ORDEM_TEXTO = {
   data: ['mais antigos primeiro', 'mais recentes primeiro'], disc: ['disciplina de A a Z', 'disciplina de Z a A'], seq: ['sequencial crescente', 'sequencial decrescente'],
   doc: ['documento de A a Z', 'documento de Z a A'], predio: ['prédio de A a Z', 'prédio de Z a A'],
   status: ['status na ordem do fluxo', 'status na ordem inversa do fluxo']
 };
-
-function gerarAcervo() {
-  var a = 20261014;
-  var rnd = function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
-  var pick = function (arr) { return arr[Math.floor(rnd() * arr.length)]; };
-  var combos = [['PRO','ARQ','PL'],['PRO','ARQ','PL'],['PRO','ARQ','DET'],['PRO','ARQ','MEM'],['PRO','ARQ','ART'],['PRO','ARQ','ASB'],['PRO','ELE','PL'],['PRO','ELE','PL'],['PRO','ELE','UNI'],['PRO','ELE','MC'],['PRO','ELE','ART'],['PRO','ELE','ASB'],['PRO','HID','PL'],['PRO','HID','MC'],['PRO','CLI','MEM'],['PRO','CLI','PL'],['PRO','INC','PL'],['PRO','SDA','PL'],['PRO','LOG','PL'],['PRO','LOG','LIS'],['PRO','EST','PL'],['PRO','EST','MC'],['PRO','GER','ET'],['PRO','GER','ORC'],['PRO','TOP','MAP'],['PRO','GEO','LAU'],['PRO','AUT','DIA'],['PRO','MEC','ET'],['PRO','GAS','PL'],['PRO','TEL','PL'],['MNT','SPDA','LAU'],['MNT','ELE','LAU'],['MNT','CLI','REL'],['MNT','HID','REL'],['MNT','CIV','LAU'],['OBR','CIV','RDO'],['OBR','GER','MED'],['OBR','GER','CRO'],['OBR','ARQ','ASB'],['FIS','CIV','REL'],['FIS','GER','PT'],['FIS','ELE','NT'],['SEG','CFT','PL'],['SEG','SDA','PL'],['PLA','GER','TR'],['CTR','GER','OS'],['ADM','GER','OF'],['OPR','ELE','POP'],['OPR','CLI','POP'],['PRO','GER','ATA']];
-  var desenho = { PRA: 1 };
-  var planilha = { ORC: 1, MED: 1, LIS: 1, CRO: 1 };
-  var finais = ['Aprovado', 'Aprovado', 'Aprovado', 'Aprovado', 'Aprovado', 'Aprovado', 'Em elaboração', 'Em elaboração', 'Cancelado'];
-  var ambientes = ['Térreo', '1º pavimento', '2º pavimento', '3º pavimento', 'Subsolo', 'Cobertura', 'Ala norte', 'Ala sul', 'Sala do júri', 'Cartórios', 'Arquivo', 'Fachada principal', 'Estacionamento', 'Casa de máquinas'];
-  var objetos = {
-    ELE: ['quadro de distribuição geral', 'iluminação e tomadas', 'entrada de energia e medição', 'circuitos do ar-condicionado', 'gerador e QTA'],
-    ARQ: ['layout de mobiliário', 'reforma dos sanitários PNE', 'planta de forro', 'acessibilidade e rampas', 'paginação de piso'],
-    HID: ['reservatório superior', 'rede de esgoto', 'drenagem pluvial', 'sanitários'],
-    CLI: ['VRF das salas de audiência', 'exaustão dos sanitários', 'splits do arquivo'],
-    INC: ['hidrantes e extintores', 'rotas de fuga e sinalização'], SDA: ['detectores e acionadores', 'central de alarme'],
-    LOG: ['rack e pontos de rede', 'cabeamento das salas'], EST: ['reforço de laje', 'fundações do anexo', 'cobertura metálica'],
-    SPDA: ['captores e descidas', 'malha de aterramento'], CFT: ['câmeras do perímetro'], CIV: ['impermeabilização', 'fissuras na fachada', 'recuperação estrutural'],
-    GER: ['reforma geral', 'adequação de layout', 'manutenção predial anual', 'orçamento da reforma']
-  };
-  var atualiz = ['ajuste conforme vistoria', 'compatibilização com climatização', 'inclusão de novos circuitos', 'correção de cotas', 'atendimento às ressalvas da fiscalização'];
-  var cods = Object.keys(PREDIOS);
-  var poa = cods.filter(function (c) { return c.indexOf('POA') === 0; });
-  var docs = [];
-  var inicio = new Date(2017, 0, 1).getTime();
-  var fim = new Date(2026, 9, 10).getTime();
-  for (var seq = 1; seq <= 8; seq++) {
-    var DG = ['ELE', 'ELE', 'ELE', 'ELE', 'ARQ', 'ARQ', 'ARQ', 'TEL', 'TEL', 'TEL', 'CIV', 'CIV', 'CIV', 'MEC', 'MEC'];
-    var TG = ['PRA', 'PRA', 'PRA', 'PRA', 'PRA', 'PRA', 'MEM', 'MEM', 'MC', 'ET', 'LIS', 'LAU', 'LAU', 'REL', 'REL', 'PT', 'POP', 'PMN', 'MAN', 'ART', 'ART', 'ORC', 'TR', 'OS', 'RDO', 'MED', 'CRO', 'TRB', 'ALV', 'PT', 'OF', 'ATA'];
-    var dsc = pick(DG);
-    var c = [pick(SIS_ORDEM[dsc]), dsc, pick(TG)];
-    var FIXOS = { 2: ['OBR', 'CIV', 'RDO'], 5: ['CLI', 'MEC', 'ART'], 8: ['GUT', 'CIV', 'REL'] };
-    if (FIXOS[seq]) c = FIXOS[seq];
-    var predio = rnd() < 0.3 ? pick(poa) : pick(cods);
-    if (seq % 23 === 7) {
-      c = [['ILU', 'ELE', 'PRA'], ['ENE', 'ELE', 'PRA'], ['LAY', 'ARQ', 'PRA'], ['EDI', 'ARQ', 'PRA']][seq % 4];
-      predio = ['CSU-F-3', 'PEL-F-1', 'POA-F-1', 'SMA-F-1', 'CAN-F-4'][Math.floor(seq / 23) % 5];
-    }
-    var nRev = 1 + (rnd() < 0.4 ? 1 : 0) + (rnd() < 0.15 ? 1 : 0) + (rnd() < 0.05 ? 1 : 0);
-    var t = inicio + rnd() * (fim - inicio - 1000 * 3600 * 24 * 200);
-    var acesso = rnd() < 0.18 ? 'Público' : (rnd() < 0.02 ? 'Informação classificada' : 'Acesso controlado');
-    if (seq === 6) acesso = 'Informação classificada';
-    var fase = faseAuto(c[2]) || pick(['EXE', 'EXE', 'BAS', 'ANT', 'EST', 'ASB']);
-    var sei = rnd() < 0.45 ? '8.' + (2017 + (seq % 10)) + '.0010/' + String(1000 + Math.floor(rnd() * 98000)).padStart(6, '0') + '-' + Math.floor(rnd() * 10) : '';
-    var imp = false;
-    var objLista = c[0] !== 'VAR' ? [nomeSis(c[1], c[0]).toLowerCase()] : (objetos[c[1]] || objetos.GER);
-    var resp = rnd() < 0.5 ? String(100000 + Math.floor(rnd() * 900000)) : '';
-    var comBase = rnd() < 0.7 ? pick(ambientes) + ': ' + objLista[seq % objLista.length] : '';
-    for (var r = 0; r < nRev; r++) {
-      t += rnd() * 1000 * 3600 * 24 * 60;
-      var ultimaRev = r === nRev - 1;
-      var status = ultimaRev ? (c[2] === 'ASB' ? 'Aprovado' : pick(finais)) : 'Substituído';
-      var exts = desenho[c[1] === 'ELE' && c[2] === 'MC' ? 'X' : c[2]] ? [rnd() < 0.55 ? 'pdf' : 'dwg'] : (planilha[c[2]] ? ['xlsx'] : [rnd() < 0.8 ? 'pdf' : 'docx']);
-      var dt = new Date(Math.min(t, fim));
-      var com = r > 0 && comBase && rnd() < 0.6 ? comBase + '. ' + pick(atualiz).replace(/^./, function (x) { return x.toUpperCase(); }) + '.' : comBase;
-      exts.forEach(function (ext) {
-        docs.push({
-          seq: seq, rev: r, predio: predio, sis: c[0], disc: c[1], tipo: c[2], fase: fase, status: status,
-          acesso: acesso, sigilo: acesso === 'Informação classificada' ? 'Reservada' : 'Não se aplica',
-          ext: ext, size: Math.round((ext === 'dwg' ? 900000 : 120000) + rnd() * 3200000),
-          ts: dt.getTime(), data: String(dt.getDate()).padStart(2, '0') + '/' + String(dt.getMonth() + 1).padStart(2, '0') + '/' + dt.getFullYear(),
-          por: 'Carga inicial', url: '', comentario: com,
-          ticket: resp, sei: sei
-        });
-      });
-    }
-  }
-  /* quando a última revisão não está aprovada, a anterior continua valendo */
-  var porSeq = {};
-  docs.forEach(function (x) { (porSeq[x.seq] = porSeq[x.seq] || []).push(x); });
-  Object.keys(porSeq).forEach(function (k) {
-    var l = porSeq[k].sort(function (a, b) { return a.rev - b.rev; });
-    var u = l[l.length - 1];
-    if (TIPOS_REGISTRO.indexOf(u.tipo) >= 0 && u.status === 'Em elaboração') u.status = 'Aprovado';
-    if (l.length > 1 && u.status !== 'Aprovado') l[l.length - 2].status = 'Aprovado';
-  });
-  return docs;
-}
 
 class Component extends DCLogic {
   constructor(props) {
     super(props);
     this.timer = null;
     this._ref = null;
+    this._auth = '';   /* usuário:senha em Base64, para o HTTP Basic */
     this.state = Object.assign(this.formLimpo(), {
       busca: '', fPredio: [], pop: null, popBusca: '',
       fStatus: [], fDisc: [], fTipo: [], fSis: [], mais: {},
@@ -180,10 +107,11 @@ class Component extends DCLogic {
       ver: null, verRev: null, form: null, edicao: null, edDet: null, verAlt: false, justificativa: '', avisoEd: '', info: false, sucesso: null, sel: null,
       login: false, menuConta: false, usuario: '', perfil: 'tecnico',
       loginUsuario: '', loginSenha: '', loginPerfil: 'tecnico', loginErro: '',
-      toast: '', destaque: null, hist: {},
-      nextSeq: 9,
+      toast: '', destaque: null, salvando: false,
+      hist: (props.acervo && props.acervo.hist) || {},
+      nextSeq: (props.acervo && props.acervo.proximoSeq) || 1,
       recentes: [],
-      docs: gerarAcervo()
+      docs: (props.acervo && props.acervo.docs) || []
     }, this.lerEndereco());
   }
 
@@ -326,7 +254,9 @@ class Component extends DCLogic {
       grupos.push({
         seq: seq, d: d, ult: ult, lista: lista, emTs: tsBR(d.emissao) || d.ts,
         coment: (lista.slice().sort((x, y) => y.rev - x.rev).find((x) => x.comentario) || {}).comentario || '',
-        texto: semAcento([this.base(d), PREDIOS[d.predio], TIPOS[d.tipo], NATUREZA[d.tipo], DISCS[d.disc], nomeSis(d.disc, d.sis), d.status, FASES[d.fase]].concat(lista.map((x) => [x.comentario || '', x.por || '', x.ticket || '', x.sei || ''].join(' '))).join(' '))
+        /* inclui o nome completo de cada revisão (código-Rnn.ext), para achar o código copiado do detalhe ou o nome do arquivo baixado */
+        texto: semAcento([this.base(d), PREDIOS[d.predio], TIPOS[d.tipo], NATUREZA[d.tipo], DISCS[d.disc], nomeSis(d.disc, d.sis), d.status, FASES[d.fase]]
+          .concat(lista.map((x) => [this.nomeDe(x), x.comentario || '', x.por || '', x.ticket || '', x.sei || ''].join(' '))).join(' '))
       });
     });
     this._ref = this.state.docs;
@@ -337,10 +267,31 @@ class Component extends DCLogic {
   maxRevTodas(seq) { var m = 0; this.state.docs.forEach((x) => { if (x.seq === seq && x.rev > m) m = x.rev; }); return m; }
   maxRev(seq) { var m = 0; this.doSeq(seq).forEach((x) => { if (x.rev > m) m = x.rev; }); return m; }
 
-  aviso(msg, extra) {
+  /* ---------- comunicação com o servidor (API REST do Spring) ---------- */
+  api(metodo, url, corpo) {
+    var op = { method: metodo, headers: {} };
+    if (this._auth) op.headers.Authorization = 'Basic ' + this._auth;
+    if (corpo instanceof FormData) op.body = corpo;
+    else if (corpo !== undefined) { op.headers['Content-Type'] = 'application/json'; op.body = JSON.stringify(corpo); }
+    return fetch(url, op).then((r) => {
+      if (r.ok) return r.status === 204 ? null : r.json();
+      return r.json().catch(() => ({})).then((j) => { throw new Error(j.erro || 'Não foi possível concluir (erro ' + r.status + ')'); });
+    }, () => { throw new Error('Não foi possível falar com o servidor'); });
+  }
+
+  /* busca de novo todas as revisões e o histórico */
+  recarregar(extra) {
+    return this.api('GET', '/api/acervo').then((a) => this.setState(Object.assign({ docs: a.docs, hist: a.hist || {}, nextSeq: a.proximoSeq }, extra || {})));
+  }
+
+  falha(e, extra) {
+    this.aviso(e && e.message ? e.message : 'Não foi possível concluir', Object.assign({ salvando: false }, extra || {}), true);
+  }
+
+  aviso(msg, extra, alerta) {
     if (this.timer) clearTimeout(this.timer);
     this.timer = setTimeout(() => this.setState({ flash: null, destaque: null }), 3700);
-    var alerta = /^(Salve|Não foi|Arquivo fictício|A classificação é a mesma|Nenhum)/.test(msg);
+    alerta = alerta === true || /^(Salve|Não foi|A classificação é a mesma|Nenhum)/.test(msg);
     var n = ((this.state.flash && this.state.flash.n) || 0) + 1;
     this.setState(Object.assign({ flash: { msg: msg, alerta: alerta, n: n } }, extra || {}));
   }
@@ -445,56 +396,45 @@ class Component extends DCLogic {
 
   baixarDoc(d) {
     if (!this.podeBaixar(d)) { this.setState({ sigilo: { codigo: this.nomeDe(d).replace(/\.[^.]+$/, ''), grau: d.sigilo } }); return; }
-    if (!d.url) { this.aviso('Arquivo fictício do protótipo: não há conteúdo para baixar'); return; }
-    try {
+    if (!d.url) { this.aviso('Não foi possível baixar o arquivo'); return; }
+    var nome = this.nomeDe(d);
+    fetch(d.url, this._auth ? { headers: { Authorization: 'Basic ' + this._auth } } : {}).then((r) => {
+      if (!r.ok) return r.json().catch(() => ({})).then((j) => { throw new Error(j.erro || 'Não foi possível baixar o arquivo'); });
+      return r.blob();
+    }).then((b) => {
+      var u = URL.createObjectURL(b);
       var a = document.createElement('a');
-      a.href = d.url; a.download = this.nomeDe(d);
+      a.href = u; a.download = nome;
       document.body.appendChild(a); a.click(); a.remove();
-      this.aviso('Baixando ' + this.nomeDe(d));
-    } catch (e) { this.aviso('Não foi possível baixar o arquivo'); }
+      setTimeout(() => URL.revokeObjectURL(u), 10000);
+      this.aviso('Baixando ' + nome);
+    }).catch((e) => this.aviso(e.message || 'Não foi possível baixar o arquivo', null, true));
   }
 
   /* ---------- lixeira (gestor) ---------- */
-  ajustarVigente(docs, seq) {
-    var vivos = docs.filter((x) => x.seq === seq && !x.excluido);
-    if (!vivos.length || vivos.some((x) => x.status === 'Aprovado')) return docs;
-    var subs = vivos.filter((x) => x.status === 'Substituído');
-    if (!subs.length) return docs;
-    var r = Math.max.apply(null, subs.map((x) => x.rev));
-    return docs.map((x) => (x.seq === seq && x.rev === r && !x.excluido ? Object.assign({}, x, { status: 'Aprovado' }) : x));
-  }
-
   confirmarExclusao() {
     var s = this.state, e = s.exclusao;
     if (e.motivo.trim().length < 10) { this.setState({ exclusao: Object.assign({}, e, { tentou: true }) }); return; }
+    if (s.salvando) return;
     var u = this.maxRev(e.seq);
-    var marca = { ts: Date.now(), por: s.usuario, motivo: e.motivo.trim(), alvo: e.alvo, rev: u };
-    var docs = s.docs.map((x) => (x.seq === e.seq && !x.excluido && (e.alvo === 'doc' || x.rev === u) ? Object.assign({}, x, { excluido: marca }) : x));
-    if (e.alvo === 'rev') docs = this.ajustarVigente(docs, e.seq);
-    var hist = Object.assign({}, s.hist);
-    hist[e.seq] = (s.hist[e.seq] || []).concat([{ ts: marca.ts, por: s.usuario, acao: e.alvo === 'doc' ? 'Documento excluído' : 'Revisão ' + this.revTxt(u) + ' excluída', detalhe: 'Justificativa: ' + marca.motivo }]);
-    var fim = e.alvo === 'doc' ? { ver: null, verRev: null, sel: null } : { verRev: null };
-    this.aviso(e.alvo === 'doc' ? 'Documento movido para a lixeira' : 'Revisão ' + this.revTxt(u) + ' movida para a lixeira', Object.assign({ docs: docs, hist: hist, exclusao: null }, fim));
+    this.setState({ salvando: true });
+    this.api('POST', '/api/documentos/' + e.seq + '/exclusoes', { alvo: e.alvo, motivo: e.motivo.trim() })
+      /* fecha o modal junto com a chegada dos dados (o documento excluído some da lista) */
+      .then(() => this.recarregar(Object.assign({ exclusao: null, salvando: false }, e.alvo === 'doc' ? { ver: null, verRev: null, sel: null } : { verRev: null })))
+      .then(() => this.aviso(e.alvo === 'doc' ? 'Documento movido para a lixeira' : 'Revisão ' + this.revTxt(u) + ' movida para a lixeira'))
+      .catch((err) => this.falha(err));
   }
 
-  restaurar(seq, ts) {
+  restaurar(id) {
     var s = this.state;
-    var alvo = s.docs.filter((x) => x.seq === seq && x.excluido && x.excluido.ts === ts);
-    if (!alvo.length) return;
-    var m = alvo[0].excluido;
-    var docs = s.docs.map((x) => (x.seq === seq && x.excluido && x.excluido.ts === ts ? Object.assign({}, x, { excluido: null }) : x));
-    if (m.alvo === 'rev' && alvo.some((x) => x.status === 'Aprovado')) {
-      var maiorAprov = docs.filter((x) => x.seq === seq && !x.excluido && x.status === 'Aprovado' && x.rev > m.rev).length;
-      docs = docs.map((x) => {
-        if (x.seq !== seq || x.excluido) return x;
-        if (maiorAprov && x.rev === m.rev) return Object.assign({}, x, { status: 'Substituído' });
-        if (!maiorAprov && x.rev < m.rev && x.status === 'Aprovado') return Object.assign({}, x, { status: 'Substituído' });
-        return x;
-      });
-    }
-    var hist = Object.assign({}, s.hist);
-    hist[seq] = (s.hist[seq] || []).concat([{ ts: Date.now(), por: s.usuario, acao: m.alvo === 'doc' ? 'Documento restaurado da lixeira' : 'Revisão ' + this.revTxt(m.rev) + ' restaurada da lixeira', detalhe: '' }]);
-    this.aviso(m.alvo === 'doc' ? 'Documento ' + this.pad(seq) + ' restaurado' : 'Revisão ' + this.revTxt(m.rev) + ' restaurada', { docs: docs, hist: hist });
+    var x = s.docs.find((y) => y.excluido && y.excluido.id === id);
+    if (!x || s.salvando) return;
+    var m = x.excluido;
+    this.setState({ salvando: true });
+    this.api('POST', '/api/exclusoes/' + id + '/restauracao')
+      .then(() => this.recarregar())
+      .then(() => this.aviso(m.alvo === 'doc' ? 'Documento ' + this.pad(x.seq) + ' restaurado' : 'Revisão ' + this.revTxt(m.rev) + ' restaurada', { salvando: false }))
+      .catch((err) => this.falha(err));
   }
 
   faltas() {
@@ -513,31 +453,33 @@ class Component extends DCLogic {
     var f = this.faltas();
     if (Object.keys(f).some((k) => f[k])) { this.setState({ tentou: true }); return; }
     if (this.duplicado() && !s.dupOk) { this.setState({ tentou: true }); return; }
+    if (s.salvando) return;
     var rev = s.form.modo === 'revisao';
-    var seq = rev ? s.form.seq : s.nextSeq;
-    var doc_prev = rev ? this.maxRev(seq) : -1;
-    var agora = new Date();
-    var doc = {
-      seq: seq, rev: rev ? this.maxRevTodas(seq) + 1 : 0, predio: s.predio, sis: s.sis, disc: s.disc, tipo: s.tipo,
-      fase: s.fase, status: s.status, acesso: s.acesso, sigilo: s.acesso === 'Informação classificada' ? s.sigilo : 'Não se aplica',
-      ext: s.file.ext, size: s.file.size, ts: agora.getTime(),
-      data: String(agora.getDate()).padStart(2, '0') + '/' + String(agora.getMonth() + 1).padStart(2, '0') + '/' + agora.getFullYear(),
-      por: s.usuario || 'Não identificado', url: URL.createObjectURL(s.file.obj), comentario: s.comentario.trim(), hash: s.file.hash || '',
-      ticket: s.ticket.trim(), sei: rev ? (this.doSeq(seq).find((x) => x.rev === doc_prev) || {}).sei || '' : s.sei.trim()
+    var dados = new FormData();
+    dados.append('arquivo', s.file.obj, s.file.nome);
+    var campos = {
+      predio: s.predio, disc: s.disc, sis: s.sis, tipo: s.tipo, fase: s.fase, status: s.status, acesso: s.acesso,
+      sigilo: s.acesso === 'Informação classificada' ? s.sigilo : '', comentario: s.comentario.trim(), ticket: s.ticket.trim(), sei: s.sei.trim()
     };
-    if (this.timer) clearTimeout(this.timer);
-    this.timer = setTimeout(() => this.setState({ destaque: null }), 6000);
-    var anteriores = rev && doc.status === 'Aprovado' ? s.docs.map((x) => (x.seq === seq && x.rev < doc.rev && x.status === 'Aprovado' ? Object.assign({}, x, { status: 'Substituído' }) : x)) : s.docs;
-    this.setState({
-      docs: anteriores.concat([doc]), nextSeq: rev ? s.nextSeq : s.nextSeq + 1,
-      recentes: [doc.predio].concat((s.recentes || []).filter((c) => c !== doc.predio)).slice(0, 5),
-      tentou: false, destaque: seq, verRev: null, sel: seq,
-      sucesso: {
-        seq: seq, ext: doc.ext, nome: this.nomeDe(doc), predio: doc.predio,
-        titulo: rev ? 'Revisão ' + this.revTxt(doc.rev) + ' Incluída com Sucesso' : 'Documento Incluído com Sucesso',
-        descricao: this.titulo(doc) + ' · ' + nomePredio(doc.predio)
-      }
-    });
+    Object.keys(campos).forEach((k) => dados.append(k, campos[k] || ''));
+    this.setState({ salvando: true });
+    this.api('POST', rev ? '/api/documentos/' + s.form.seq + '/revisoes' : '/api/documentos', dados)
+      .then((r) => this.recarregar().then(() => r))
+      .then((r) => {
+        var doc = this.doSeq(r.seq).find((x) => x.rev === r.rev);
+        if (this.timer) clearTimeout(this.timer);
+        this.timer = setTimeout(() => this.setState({ destaque: null }), 6000);
+        this.setState({
+          salvando: false, tentou: false, destaque: r.seq, verRev: null, sel: r.seq,
+          recentes: [doc.predio].concat((this.state.recentes || []).filter((c) => c !== doc.predio)).slice(0, 5),
+          sucesso: {
+            seq: r.seq, ext: doc.ext, nome: r.nomeArquivo, predio: doc.predio,
+            titulo: rev ? 'Revisão ' + this.revTxt(r.rev) + ' Incluída com Sucesso' : 'Documento Incluído com Sucesso',
+            descricao: this.titulo(doc) + ' · ' + nomePredio(doc.predio)
+          }
+        });
+      })
+      .catch((e) => this.falha(e));
   }
 
   /* edição no próprio modal do documento */
@@ -586,37 +528,26 @@ class Component extends DCLogic {
     this.setState(o);
   }
 
-  registrar(seq, acao, detalhe, extra, msg) {
-    var s = this.state;
-    var hist = Object.assign({}, s.hist);
-    hist[seq] = (s.hist[seq] || []).concat([{ ts: Date.now(), por: s.usuario, acao: acao, detalhe: detalhe }]);
-    this.aviso(msg, Object.assign({ hist: hist, edicao: null, edDet: null, tentou: false, avisoEd: '' }, extra));
-  }
-
   salvarInfo() {
     var s = this.state;
     var f = this.faltas();
     if (Object.keys(f).some((k) => f[k])) { this.setState({ tentou: true, avisoEd: '' }); return; }
+    if (s.salvando) return;
     var ed = s.edDet || s.edicao;
     var d = this.doSeq(ed.seq).find((x) => x.rev === ed.rev);
-    var novo = { fase: s.fase, status: s.status, acesso: s.acesso, sigilo: s.acesso === 'Informação classificada' ? s.sigilo : 'Não se aplica', comentario: s.comentario.trim() };
-    var mud = [];
-    if (s.edDet) {
-      novo.ticket = s.ticket.trim();
-      novo.sei = s.sei.trim();
-      if (novo.sei !== (d.sei || '')) mud.push('Processo SEI: ' + (d.sei || '—') + ' → ' + (novo.sei || '—'));
-      if (novo.ticket !== (d.ticket || '')) mud.push('Número do ticket: ' + (d.ticket || '—') + ' → ' + (novo.ticket || '—'));
-    }
-    if (novo.status !== d.status) mud.push('Status: ' + d.status + ' → ' + novo.status);
-    if (novo.fase !== d.fase) mud.push('Etapa: ' + (FASES[d.fase] || '—') + ' → ' + FASES[novo.fase]);
-    if (novo.acesso !== d.acesso) mud.push('Acesso: ' + d.acesso + ' → ' + novo.acesso);
-    if (novo.sigilo !== d.sigilo && novo.acesso === 'Informação classificada') mud.push('Sigilo: ' + novo.sigilo);
-    if (novo.comentario !== (d.comentario || '')) mud.push('Descrição atualizada');
-    if (!mud.length) { this.setState({ edDet: null, avisoEd: '', tentou: false }); return; }
-    var subst = novo.status === 'Aprovado' && d.status !== 'Aprovado' ? this.doSeq(ed.seq).filter((x) => x.rev < ed.rev && x.status === 'Aprovado').map((x) => x.rev) : [];
-    if (subst.length) mud.push(subst.map((r) => this.revTxt(r)).join(', ') + ' passou a Substituído');
-    var docs = s.docs.map((x) => (x.seq === ed.seq && x.rev === ed.rev ? Object.assign({}, x, novo) : (x.seq === ed.seq && subst.indexOf(x.rev) >= 0 ? Object.assign({}, x, { status: 'Substituído' }) : x)));
-    this.registrar(ed.seq, 'Informações da ' + this.revTxt(ed.rev) + ' editadas', mud.join('\n'), { docs: docs }, 'Alterações salvas');
+    var dados = {
+      fase: s.fase, status: s.status, acesso: s.acesso, sigilo: s.acesso === 'Informação classificada' ? s.sigilo : '', comentario: s.comentario.trim(),
+      ticket: s.edDet ? s.ticket.trim() : (d.ticket || ''), sei: s.edDet ? s.sei.trim() : (d.sei || '')
+    };
+    var igual = dados.fase === d.fase && dados.status === d.status && dados.acesso === d.acesso &&
+      (dados.acesso !== 'Informação classificada' || dados.sigilo === d.sigilo) && dados.comentario === (d.comentario || '') &&
+      dados.ticket === (d.ticket || '') && dados.sei === (d.sei || '');
+    if (igual) { this.setState({ edDet: null, edicao: null, avisoEd: '', tentou: false }); return; }
+    this.setState({ salvando: true });
+    this.api('PUT', '/api/documentos/' + ed.seq + '/revisoes/' + ed.rev, dados)
+      .then(() => this.recarregar({ edicao: null, edDet: null, tentou: false, avisoEd: '', salvando: false }))
+      .then(() => this.aviso('Alterações salvas'))
+      .catch((e) => this.falha(e));
   }
 
   salvarClassif() {
@@ -626,19 +557,15 @@ class Component extends DCLogic {
       this.setState({ tentou: true, avisoEd: f.justificativa && !f.predio && !f.sis && !f.disc && !f.tipo ? 'Escreva uma justificativa com pelo menos 10 caracteres.' : '' });
       return;
     }
+    if (s.salvando) return;
     var ed = s.edicao || s.edDet;
     var d = this.doSeq(ed.seq)[0];
-    var mud = [];
-    if (s.predio !== d.predio) mud.push('Prédio: ' + PREDIOS[d.predio] + ' → ' + PREDIOS[s.predio]);
-    if (s.sis !== d.sis || s.disc !== d.disc) mud.push('Assunto: ' + nomeSis(d.disc, d.sis) + ' → ' + nomeSis(s.disc, s.sis));
-    if (s.disc !== d.disc) mud.push('Disciplina: ' + DISCS[d.disc] + ' → ' + DISCS[s.disc]);
-    if (s.tipo !== d.tipo) mud.push('Tipo: ' + TIPOS[d.tipo] + ' → ' + TIPOS[s.tipo]);
-    if (!mud.length) { this.setState({ avisoEd: 'A classificação é a mesma. Nada a corrigir.' }); return; }
-    var nova = { predio: s.predio, sis: s.sis, disc: s.disc, tipo: s.tipo };
-    if (faseAuto(s.tipo) && s.tipo !== d.tipo) nova.fase = faseAuto(s.tipo);
-    var docs = s.docs.map((x) => (x.seq === ed.seq ? Object.assign({}, x, nova) : x));
-    mud.push('Justificativa: ' + s.justificativa.trim());
-    this.registrar(ed.seq, 'Classificação corrigida e arquivos renomeados', mud.join('\n'), { docs: docs }, 'Classificação corrigida · arquivos renomeados');
+    if (s.predio === d.predio && s.sis === d.sis && s.disc === d.disc && s.tipo === d.tipo) { this.setState({ avisoEd: 'A classificação é a mesma. Nada a corrigir.' }); return; }
+    this.setState({ salvando: true });
+    this.api('PUT', '/api/documentos/' + ed.seq + '/classificacao', { predio: s.predio, disc: s.disc, sis: s.sis, tipo: s.tipo, justificativa: s.justificativa.trim() })
+      .then(() => this.recarregar({ edicao: null, edDet: null, tentou: false, avisoEd: '', salvando: false }))
+      .then(() => this.aviso('Classificação corrigida · arquivos renomeados'))
+      .catch((e) => this.falha(e));
   }
 
   /* login só quando a ação exige; depois de entrar, a ação continua sozinha */
@@ -651,10 +578,17 @@ class Component extends DCLogic {
   entrar() {
     var s = this.state;
     if (!s.loginUsuario.trim() || !s.loginSenha) { this.setState({ loginErro: !s.loginUsuario.trim() && !s.loginSenha ? 'Informe usuário e senha.' : (!s.loginSenha ? 'Informe a senha.' : 'Informe o usuário.') }); return; }
-    this.setState({ usuario: s.loginUsuario.trim(), perfil: s.loginPerfil, loginSenha: '', loginErro: '', login: false });
-    var acao = this._apos;
-    this._apos = null;
-    if (acao) acao();
+    if (s.salvando) return;
+    var usuario = s.loginUsuario.trim(), senha = s.loginSenha;
+    this._auth = '';
+    this.setState({ salvando: true, loginErro: '' });
+    this.api('POST', '/api/auth/login', { usuario: usuario, senha: senha }).then((u) => {
+      this._auth = btoa(unescape(encodeURIComponent(usuario + ':' + senha)));
+      this.setState({ usuario: u.usuario, perfil: u.perfil, loginSenha: '', loginErro: '', login: false, salvando: false });
+      var acao = this._apos;
+      this._apos = null;
+      if (acao) acao();
+    }).catch((e) => this.setState({ salvando: false, loginErro: e.message || 'Usuário ou senha inválidos.' }));
   }
 
   fecharTopo() {
@@ -974,7 +908,7 @@ class Component extends DCLogic {
           var x = todos.find((y) => y.rev === r);
           var ativa = r === rsel;
           return {
-            rev: this.revTxt(r), ativa: ativa, nome: this.nomeDe(x), url: x.url, temUrl: !!x.url && this.podeBaixar(x), semUrl: !(x.url && this.podeBaixar(x)),
+            rev: this.revTxt(r), ativa: ativa, nome: this.nomeDe(x), url: x.url, temUrl: false, semUrl: true,
             aria: 'Ver dados da revisão ' + this.revTxt(r),
             meta: x.ext.toUpperCase() + ' · ' + this.fmtSize(x.size) + ' · incluído em ' + x.data + ' por ' + x.por + ' · ' + x.status,
             escolher: () => (this.state.edDet ? this.aviso('Salve ou cancele a edição antes de trocar de revisão') : this.setState({ verRev: r })),
@@ -1071,7 +1005,7 @@ class Component extends DCLogic {
       menuConta: s.menuConta,
       alternarMenu: () => this.setState({ menuConta: !this.state.menuConta }),
       fecharMenu: () => this.setState({ menuConta: false }),
-      sair: () => { this.setState({ usuario: '', perfil: 'tecnico', loginUsuario: '', loginSenha: '', menuConta: false, edicao: null, form: null }); this.aviso('Você saiu da conta'); },
+      sair: () => { this._auth = ''; this.setState({ usuario: '', perfil: 'tecnico', loginUsuario: '', loginSenha: '', menuConta: false, edicao: null, form: null }); this.aviso('Você saiu da conta'); },
 
       filtros: filtros,
       popBusca: s.popBusca,
@@ -1240,7 +1174,7 @@ class Component extends DCLogic {
         sub: this.revTxt(g.ult) + ' · ' + g.d.status + ' · ' + FASES[g.d.fase] + ' · ' + g.d.data,
         revisar: () => this.virarRevisao(g.seq)
       })),
-      botaoSalvar: revForm ? 'Incluir revisão' : 'Incluir documento',
+      botaoSalvar: s.salvando ? 'Enviando…' : (revForm ? 'Incluir revisão' : 'Incluir documento'),
       salvar: () => this.salvar(),
 
       edInfoAberto: !!s.edicao && s.edicao.tipo === 'info',
@@ -1300,14 +1234,14 @@ class Component extends DCLogic {
       fecharExclusao: () => this.setState({ exclusao: null }),
       fecharFundoExclusao: (e) => { if (e.target === e.currentTarget) this.setState({ exclusao: null }); },
       lixeiraAberta: !!s.lixeira,
-      nLixeira: (() => { var k = new Set(); s.docs.forEach((x) => { if (x.excluido) k.add(x.seq + ':' + x.excluido.ts); }); return k.size ? String(k.size) : ''; })(),
+      nLixeira: (() => { var k = new Set(); s.docs.forEach((x) => { if (x.excluido) k.add(x.excluido.id); }); return k.size ? String(k.size) : ''; })(),
       abrirLixeira: () => this.setState({ lixeira: true, menuConta: false }),
       fecharLixeira: () => this.setState({ lixeira: false }),
       fecharFundoLixeira: (e) => { if (e.target === e.currentTarget) this.setState({ lixeira: false }); },
       lix: (() => {
         if (!s.lixeira) return { vazia: false, itens: [] };
         var mapa = new Map();
-        s.docs.forEach((x) => { if (!x.excluido) return; var k = x.seq + ':' + x.excluido.ts; if (!mapa.has(k)) mapa.set(k, x); });
+        s.docs.forEach((x) => { if (!x.excluido) return; var k = x.excluido.id; if (!mapa.has(k)) mapa.set(k, x); });
         var hh = (n) => String(n).padStart(2, '0');
         var itens = Array.from(mapa.values()).sort((a, b) => b.excluido.ts - a.excluido.ts).map((x) => {
           var m = x.excluido, dt = new Date(m.ts);
@@ -1316,13 +1250,13 @@ class Component extends DCLogic {
             titulo: this.titulo(x) + ' · ' + (PREDIOS[x.predio] || x.predio), codigo: this.base(x) + (m.alvo === 'rev' ? '-' + this.revTxt(m.rev) : ''),
             motivo: m.motivo, por: m.por || '—',
             quando: hh(dt.getDate()) + '/' + hh(dt.getMonth() + 1) + '/' + dt.getFullYear() + ' às ' + hh(dt.getHours()) + ':' + hh(dt.getMinutes()),
-            restaurar: () => this.restaurar(x.seq, m.ts)
+            restaurar: () => this.restaurar(m.id)
           };
         });
         return { vazia: !itens.length, itens: itens };
       })(),
       loginAberto: s.login,
-      loginTexto: s.loginMotivo ? s.loginMotivo + ' Use seu usuário e senha da rede do TJRS.' : 'Use seu usuário e senha da rede do TJRS. A consulta continua livre, sem entrar.',
+      loginTexto: s.loginMotivo ? s.loginMotivo + ' Use seu usuário e senha do acervo.' : 'Use seu usuário e senha do acervo. A consulta continua livre, sem entrar.',
       tipoSenha: s.verSenha ? 'text' : 'password', senhaOculta: !s.verSenha, senhaVisivel: !!s.verSenha,
       rotuloVerSenha: s.verSenha ? 'Ocultar senha' : 'Mostrar senha',
       alternarSenha: () => this.setState({ verSenha: !this.state.verSenha }),
@@ -1366,7 +1300,17 @@ class Component extends DCLogic {
   }
 }
 
-/* inicia a aplicação */
+/* inicia a aplicação: carrega os catálogos e o acervo do servidor e monta a tela */
 document.addEventListener("DOMContentLoaded", function () {
-  window.acervo = Motor.montar(document.getElementById("app"), document.getElementById("tela").textContent, Component);
+  var raiz = document.getElementById("app");
+  var json = function (url) { return fetch(url).then(function (r) { if (!r.ok) throw new Error(url + ': erro ' + r.status); return r.json(); }); };
+  Promise.all([json("/api/catalogos"), json("/api/acervo")]).then(function (res) {
+    carregarCatalogos(res[0]);
+    window.acervo = Motor.montar(raiz, document.getElementById("tela").textContent, Component, { acervo: res[1] });
+  }).catch(function (e) {
+    console.error(e);
+    raiz.innerHTML = '<div style="max-width: 560px; margin: 80px auto; padding: 24px 28px; border-radius: 12px; background: #FFFFFF; border: 1px solid #F6CFCB; ' +
+      'font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 1.5; color: #B42318;">Não foi possível carregar o acervo. ' +
+      'Confira se o servidor e o banco de dados estão no ar e recarregue a página.</div>';
+  });
 });
