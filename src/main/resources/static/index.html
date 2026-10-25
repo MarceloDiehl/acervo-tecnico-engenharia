@@ -1,0 +1,1033 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acervo Técnico de Engenharia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<!-- Bootstrap 5.3.3 (no projeto Spring, pode trocar pelos arquivos locais/WebJars) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="css/acervo.css">
+</head>
+<body>
+<div id="app"></div>
+
+<!-- Modelo das telas: lido pelo js/motor.js -->
+<script type="text/x-template" id="tela">
+<div data-l="raiz" style="background: #F4F7F6; font-family: 'Inter', system-ui, sans-serif; font-size: 14px; line-height: 1.45; color: #1F2937;">
+
+<header style="position: sticky; top: 0; z-index: 20; width: 95%; max-width: 1440px; margin: 0 auto; background: #FFFFFF; border-bottom: 1px solid #E6E6E6; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);">
+<div style="min-height: 60px; padding: 10px 30px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; box-sizing: border-box;">
+<button type="button" onClick="{{irInicio}}" aria-label="DIPRED-DMAN, Acervo Técnico de Engenharia, página inicial" style="min-width: 0; display: flex; align-items: center; background: transparent; border: none; padding: 4px 0; color: #5A6370; font: inherit; text-align: left; cursor: pointer;">
+<span style="font-size: 20px; font-weight: 600; letter-spacing: -0.02em;">DIPRED-DMAN <span style="font-weight: 500;">| Acervo Técnico de Engenharia</span></span>
+</button>
+
+<div style="display: flex; align-items: center; gap: 14px;">
+<div style="display: flex; align-items: center; gap: 8px;">
+<button type="button" data-hover="primario" onClick="{{abrirNovo}}" style="display: flex; align-items: center; gap: 7px; border: 1px solid #6E7783; background: #6E7783; color: #FFFFFF; font: inherit; font-size: 12.5px; font-weight: 700; padding: 8px 16px; border-radius: 999px; cursor: pointer;">
+<svg aria-hidden="true" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"></path><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"></path></svg>
+<span>Incluir documento</span>
+</button>
+</div>
+<div aria-hidden="true" style="width: 1px; height: 22px; background: #E4E7EA;"></div>
+<div style="position: relative;">
+<sc-if value="{{deslogado}}" hint-placeholder-val="{{true}}">
+<button type="button" data-hover="auth" onClick="{{abrirLogin}}" title="Entrar com usuário da rede" style="display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 14px 0 10px; font: inherit; font-size: 12.5px; font-weight: 700; border: 1px solid rgba(90, 99, 112, 0.18); background: rgba(90, 99, 112, 0.08); color: #5A6370; border-radius: 999px; cursor: pointer;">
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"></circle><path d="M4.8 19.5c1.3-3.2 4-4.9 7.2-4.9s5.9 1.7 7.2 4.9"></path></svg>
+<span>Entrar</span>
+</button>
+</sc-if>
+<sc-if value="{{logado}}" hint-placeholder-val="{{false}}">
+<button type="button" data-hover="conta" onClick="{{alternarMenu}}" aria-haspopup="menu" aria-expanded="{{menuConta}}" aria-label="{{ariaConta}}" style="{{estBotaoConta}}">
+<span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: #5A6370; color: #FFFFFF; font-size: 11.5px; font-weight: 700; letter-spacing: 0.02em;">{{iniciais}}</span>
+<span style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; text-align: left;"><span style="font-size: 13px; font-weight: 600; color: #1F2937;">{{usuario}}</span><span style="font-size: 11.5px; font-weight: 500; color: #667080;">{{perfilTexto}}</span></span>
+<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#667080" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="{{estSetaConta}}"><path d="m6 9 6 6 6-6"></path></svg>
+</button>
+<sc-if value="{{menuConta}}" hint-placeholder-val="{{false}}">
+<div onClick="{{fecharMenu}}" style="position: fixed; inset: 0; z-index: 30;"></div>
+<div role="menu" aria-label="Conta" style="position: absolute; right: 0; top: 48px; z-index: 31; width: 272px; background: #FFFFFF; color: #1F2937; border: 1px solid #E8EBF0; border-radius: 12px; box-shadow: 0 16px 40px rgba(15, 23, 35, 0.16), 0 2px 6px rgba(15, 23, 35, 0.06); overflow: hidden;">
+<div style="padding: 16px; display: flex; align-items: center; gap: 12px; background: #FAFBFC; border-bottom: 1px solid #F1F3F6;">
+<span aria-hidden="true" style="flex: none; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: #5A6370; color: #FFFFFF; font-size: 14px; font-weight: 700;">{{iniciais}}</span>
+<span style="min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+<span style="font-size: 14.5px; font-weight: 700; color: #1F2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{usuario}}</span>
+<span style="align-self: flex-start; padding: 2px 8px; border-radius: 999px; background: #F1F2F4; color: #4B5563; font-size: 11.5px; font-weight: 600;">{{perfilTexto}}</span>
+</span>
+</div>
+<div style="padding: 12px 16px; border-bottom: 1px solid #F1F3F6; display: flex; flex-direction: column; gap: 6px;">
+<span style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #6E7885;">Permissões</span>
+<sc-for list="{{permissoes}}" as="pm" hint-placeholder-count="3"><span style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #374151;"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2E9E5B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg>{{pm}}</span></sc-for>
+</div>
+<div style="padding: 6px;">
+<sc-if value="{{gestor}}" hint-placeholder-val="{{false}}"><button type="button" role="menuitem" data-hover="suave" onClick="{{abrirLixeira}}" style="width: 100%; display: flex; align-items: center; gap: 10px; height: 38px; padding: 0 10px; border: none; border-radius: 8px; background: #FFFFFF; color: #1F2937; font: inherit; font-size: 13.5px; text-align: left; cursor: pointer;"><span style="display: inline-flex; color: #667080;"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"></path><path d="M9 7V4.8h6V7"></path><path d="M6.5 7l.9 12.2a1.5 1.5 0 0 0 1.5 1.3h6.2a1.5 1.5 0 0 0 1.5-1.3L17.5 7"></path><path d="M10 11v6M14 11v6"></path></svg></span><span style="flex: 1;">Lixeira</span><span style="font-size: 12px; color: #667080; font-variant-numeric: tabular-nums;">{{nLixeira}}</span></button><div aria-hidden="true" style="height: 1px; margin: 6px 4px; background: #F1F3F6;"></div></sc-if>
+<button type="button" role="menuitem" data-hover="sair" onClick="{{sair}}" style="width: 100%; display: flex; align-items: center; gap: 10px; height: 38px; padding: 0 10px; border: none; border-radius: 8px; background: #FFFFFF; color: #B42318; font: inherit; font-size: 13.5px; font-weight: 600; text-align: left; cursor: pointer;">
+<svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"></path><path d="M10 17l-5-5 5-5"></path><path d="M5 12h11"></path></svg>
+Sair da conta
+</button>
+</div>
+</div>
+</sc-if>
+</sc-if>
+</div>
+</div>
+</div>
+</header>
+
+<div data-l="corpo" style="width: 95%; max-width: 1440px; margin: 0 auto; padding: 22px 30px 24px; background: #FFFFFF; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); border-radius: 0 0 12px 12px; box-sizing: border-box;">
+
+<main data-l="principal">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; min-height: 28px;">
+<div style="display: flex; align-items: baseline; gap: 16px; min-width: 0;"><h1 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; color: #5A6370;">Pesquisa de Documentos</h1><sc-if value="{{flash.pagina}}" hint-placeholder-val="{{false}}"><span role="status" style="{{flash.estilo}} align-self: center;"><sc-if value="{{flash.ok}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg></sc-if><sc-if value="{{flash.alerta}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5"></path><path d="M12 16.4h.01"></path></svg></sc-if><span style="min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{flash.msg}}</span></span></sc-if></div>
+<sc-if value="{{temChips}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 18px;">
+<button type="button" data-hover="link" onClick="{{limparTudo}}" style="background: transparent; border: none; padding: 0; color: #5A6370; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;">Limpar pesquisa e filtros</button>
+</div>
+</sc-if>
+</div>
+<div role="search" aria-label="Pesquisa e filtros" data-l="filtros">
+<div style="min-width: 0; position: relative;">
+<label for="ac-busca" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Pesquisar no acervo</label>
+<svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#78808A" stroke-width="2.2" stroke-linecap="round" style="position: absolute; left: 11px; top: 10px; pointer-events: none;"><circle cx="11" cy="11" r="6.5"></circle><path d="m20 20-4.2-4.2"></path></svg>
+<input id="ac-busca" type="search" autocomplete="off" value="{{busca}}" onChange="{{setBusca}}" onKeyDown="{{teclaBusca}}" placeholder="Sequencial, código ou palavra-chave" style="width: 100%; height: 34px; padding: 0 32px 0 32px; border-radius: 8px; border: 1px solid #E4E7EA; background: #F7F9F9; font: inherit; font-size: 13px; color: #1F2937; box-sizing: border-box;">
+<sc-if value="{{temBusca}}" hint-placeholder-val="{{false}}">
+<button type="button" data-hover="suave" onClick="{{limparBusca}}" aria-label="Limpar pesquisa" style="position: absolute; right: 4px; top: 4px; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 6px; border: none; background: transparent; color: #667080; cursor: pointer; padding: 0;">
+<svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+</button>
+</sc-if>
+</div>
+
+<div data-l="pilulas">
+<sc-for list="{{filtros}}" as="fl" hint-placeholder-count="5">
+<div onKeyDown="{{teclaPop}}" style="position: relative; display: flex; min-width: 0;">
+<button type="button" data-hover="{{fl.hover}}" onClick="{{fl.alternar}}" aria-haspopup="true" aria-expanded="{{fl.aberto}}" title="{{fl.dica}}" style="{{fl.estilo}}">
+<span style="flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;">{{fl.texto}}</span>
+<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex: none; opacity: 0.75;"><path d="m6 9 6 6 6-6"></path></svg>
+</button>
+<sc-if value="{{fl.aberto}}" hint-placeholder-val="{{false}}">
+<div onClick="{{fecharPop}}" style="position: fixed; inset: 0; z-index: 24;"></div>
+<div role="dialog" aria-label="{{fl.titulo}}" style="{{fl.posPop}}">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px 8px;">
+<span style="font-size: 13px; font-weight: 700; color: #5A6370;">{{fl.titulo}}</span>
+<span style="font-size: 12px; color: #78808A;">{{fl.resumo}}</span>
+</div>
+<sc-if value="{{fl.temBusca}}" hint-placeholder-val="{{false}}">
+<div style="padding: 0 10px 8px; position: relative;">
+<svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#97A0AC" stroke-width="2" stroke-linecap="round" style="position: absolute; left: 21px; top: 10px; pointer-events: none;"><circle cx="11" cy="11" r="6.5"></circle><path d="m20 20-4.2-4.2"></path></svg>
+<input type="search" autocomplete="off" aria-label="{{fl.placeholder}}" value="{{popBusca}}" onChange="{{setPopBusca}}" placeholder="{{fl.placeholder}}" style="width: 100%; height: 36px; padding: 0 10px 0 32px; border-radius: 8px; border: 1px solid #E4E7EA; background: #F7F9F9; font: inherit; font-size: 13.5px; color: #1F2937; box-sizing: border-box;">
+</div>
+</sc-if>
+<div style="max-height: 290px; overflow-y: auto; padding: 0 6px 6px; border-top: 1px solid #F1F3F6;">
+<div style="height: 4px;"></div>
+<sc-for list="{{fl.opcoes}}" as="op" hint-placeholder-count="6">
+<sc-if value="{{op.ehCab}}" hint-placeholder-val="{{false}}"><div style="padding: 10px 8px 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #667080;">{{op.rotulo}}</div></sc-if>
+<sc-if value="{{op.ehItem}}" hint-placeholder-val="{{true}}"><button type="button" data-hover="{{op.hover}}" aria-pressed="{{op.sel}}" onClick="{{op.alternar}}" style="{{op.estilo}}">
+<span aria-hidden="true" style="{{op.caixa}}"><sc-if value="{{op.sel}}" hint-placeholder-val="{{false}}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg></sc-if></span>
+<span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{op.rotulo}}</span>
+<span style="flex: none; font-size: 12px; color: #6E7885; font-variant-numeric: tabular-nums;">{{op.qtd}}</span>
+</button></sc-if>
+</sc-for>
+<sc-if value="{{fl.semOpcao}}" hint-placeholder-val="{{false}}"><div style="padding: 14px 10px; font-size: 13px; color: #78808A; text-align: center;">Nenhuma opção encontrada.</div></sc-if>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px 8px 14px; border-top: 1px solid #F1F3F6; background: #FAFBFC;">
+<button type="button" data-hover="link" onClick="{{fl.limpar}}" style="background: transparent; border: none; padding: 4px 0; color: #5A6370; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;">Limpar seleção</button>
+<button type="button" data-hover="primario" onClick="{{fecharPop}}" style="height: 32px; padding: 0 14px; border-radius: 8px; border: 1px solid #6E7783; background: #6E7783; color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;">Concluir</button>
+</div>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+
+<section aria-label="Lista de documentos" data-l="lista" style="background: #FFFFFF; border: 1px solid #E8EBF0; border-radius: 12px; overflow: hidden;">
+<div data-l="rolagem">
+<div data-l="tabela" style="min-width: 900px;">
+<div data-l="cab" style="{{gridCab}}">
+<sc-for list="{{colunas}}" as="col" hint-placeholder-count="6">
+<span>
+<sc-if value="{{col.ordenavel}}" hint-placeholder-val="{{true}}">
+<button type="button" data-hover="col" onClick="{{col.ordenar}}" aria-label="{{col.aria}}" style="{{col.estilo}}">{{col.rotulo}}<span aria-hidden="true">{{col.seta}}</span></button>
+</sc-if>
+<sc-if value="{{col.fixa}}" hint-placeholder-val="{{false}}">
+<span style="font-size: 11.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #6E7885;">{{col.rotulo}}</span>
+</sc-if>
+</span>
+</sc-for>
+<span></span>
+</div>
+
+<sc-for list="{{linhas}}" as="d" hint-placeholder-count="10">
+<div data-hover="{{d.hover}}" data-l="linha" data-sel="{{d.selAttr}}" style="{{d.estiloLinha}}">
+<button type="button" data-l="linha-btn" onClick="{{d.selecionar}}" onDoubleClick="{{d.abrir}}" aria-pressed="{{d.sel}}" aria-label="{{d.aria}}" style="{{d.estilo}}">
+<span data-l="c-seq"><span style="display: inline-block; padding: 2px 7px; border-radius: 6px; background: #F1F2F4; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; font-weight: 500; color: #5A6370;">{{d.seq}}</span></span>
+<span data-l="c-doc" style="min-width: 0; display: flex; flex-direction: column; gap: 3px;">
+<span style="min-width: 0; display: flex; align-items: center; gap: 8px;">
+<span style="min-width: 0; font-size: 14px; font-weight: 600; color: #1F2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><sc-for list="{{d.tituloPartes}}" as="pt" hint-placeholder-count="1"><span style="{{pt.estilo}}">{{pt.t}}</span></sc-for></span>
+
+</span>
+<span title="{{d.dica}}" style="min-width: 0; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #667080; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><sc-for list="{{d.codigoPartes}}" as="pt" hint-placeholder-count="1"><span style="{{pt.estilo}}">{{pt.t}}</span></sc-for></span>
+</span>
+<span data-l="c-disc" style="min-width: 0; display: flex; flex-direction: column; gap: 2px;"><span title="{{d.disc}}" style="font-size: 13px; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{d.disc}}</span><span title="{{d.sis}}" style="font-size: 12px; color: #667080; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{d.sis}}</span></span>
+<span data-l="c-predio" style="min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+<span title="{{d.predio}}" style="font-size: 13.5px; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><sc-for list="{{d.predioPartes}}" as="pt" hint-placeholder-count="1"><span style="{{pt.estilo}}">{{pt.t}}</span></sc-for></span>
+</span>
+<span data-l="c-rev" style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #374151;">{{d.rev}}</span>
+<span data-l="c-status" style="min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 3px;"><span style="{{d.badge}}"><span aria-hidden="true" style="{{d.ponto}}"></span>{{d.status}}</span></span>
+<span data-l="c-data" style="font-size: 13px; color: #525C69; font-variant-numeric: tabular-nums;">{{d.data}}</span>
+</button>
+<span data-l="c-acoes" style="flex: none; width: 84px; height: 100%; margin-left: 14px; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
+<button type="button" data-hover="baixar" onClick="{{d.abrir}}" aria-label="{{d.ariaVer}}" title="Ver informações do documento" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 34px; padding: 0; border-radius: 8px; border: 1px solid transparent; background: transparent; color: #667080; cursor: pointer;">
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"></path><circle cx="12" cy="12" r="2.6"></circle></svg>
+</button>
+<button type="button" data-hover="baixar" onClick="{{d.baixar}}" aria-label="{{d.ariaBaixar}}" title="{{d.ariaBaixar}}" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 34px; padding: 0; border-radius: 8px; border: 1px solid transparent; background: transparent; color: #667080; cursor: pointer;">
+<sc-if value="{{d.livre}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg></sc-if><sc-if value="{{d.sigiloso}}" hint-placeholder-val="{{false}}"><span style="color: #9A5B00; display: inline-flex;"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="9.5" rx="2.2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg></span></sc-if>
+</button>
+</span>
+</div>
+</sc-for>
+
+<sc-if value="{{vazio}}" hint-placeholder-val="{{false}}">
+<div data-l="vazio" style="padding: 32px 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center;">
+<span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; background: #F1F2F4; color: #5A6370; margin-bottom: 4px;">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="m20 20-4.2-4.2"></path></svg>
+</span>
+<span style="font-size: 16px; font-weight: 600;">Nenhum Documento Encontrado</span>
+<span style="font-size: 14px; color: #667080; max-width: 420px;">Revise o termo pesquisado ou remova algum filtro para ampliar o resultado.</span>
+<button type="button" data-hover="secundario" onClick="{{limparTudo}}" style="margin-top: 6px; height: 36px; padding: 0 14px; border-radius: 8px; border: 1px solid #D8DEE5; background: #FFFFFF; color: #5A6370; font: inherit; font-weight: 600; font-size: 13.5px; cursor: pointer;">Limpar pesquisa e filtros</button>
+</div>
+</sc-if>
+</div>
+</div>
+
+<sc-if value="{{temPaginas}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; padding: 6px 12px 6px 16px; border-top: 1px solid #F1F3F6; background: #FFFFFF;">
+<span data-l="pagina-faixa" role="status" style="font-size: 12.5px; color: #667080; font-variant-numeric: tabular-nums;">{{faixa}}</span>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px;">
+<nav aria-label="Paginação" style="display: flex; align-items: center; gap: 2px;">
+<button type="button" onClick="{{pagAnterior}}" disabled="{{primeira}}" aria-label="Página anterior" style="{{estiloAnterior}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"></path></svg></button>
+<sc-for list="{{botoesPag}}" as="bp" hint-placeholder-count="5">
+<sc-if value="{{bp.ehPagina}}" hint-placeholder-val="{{true}}">
+<button type="button" onClick="{{bp.ir}}" aria-current="{{bp.atual}}" aria-label="{{bp.aria}}" style="{{bp.estilo}}">{{bp.rotulo}}</button>
+</sc-if>
+<sc-if value="{{bp.ehReticencia}}" hint-placeholder-val="{{false}}"><span aria-hidden="true" style="padding: 0 4px; color: #6E7885;">…</span></sc-if>
+</sc-for>
+<button type="button" onClick="{{pagProxima}}" disabled="{{ultima}}" aria-label="Próxima página" style="{{estiloProxima}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"></path></svg></button>
+</nav>
+</div>
+</div>
+</sc-if>
+</section>
+</main>
+</div>
+
+<footer style="flex: none; width: 95%; max-width: 1440px; margin: 0 auto; padding: 10px 30px 12px; box-sizing: border-box; display: flex; justify-content: center;">
+<button type="button" data-hover="credito" onClick="{{abrirInfo}}" style="background: transparent; border: none; padding: 2px 0; color: #78808A; font: inherit; font-size: 11.5px; letter-spacing: 0.5px; cursor: pointer;">© 2026 DIPRED-DMAN | Tribunal de Justiça - RS</button>
+</footer>
+
+<sc-if value="{{sigiloAberto}}" hint-placeholder-val="{{false}}">
+<div onClick="{{fecharFundoSigilo}}" style="position: fixed; inset: 0; z-index: 70; background: rgba(15, 23, 35, 0.42); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; padding: 24px 16px; box-sizing: border-box; overflow-y: auto;">
+<div role="alertdialog" aria-modal="true" aria-labelledby="sig-titulo" aria-describedby="sig-texto" style="position: relative; width: 100%; max-width: 420px; margin: auto 0; background: #FFFFFF; border-radius: 16px; box-shadow: 0 24px 64px rgba(15, 23, 35, 0.28); overflow: hidden;">
+<button type="button" data-hover="suave" onClick="{{fecharSigilo}}" aria-label="Fechar" style="position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; border: none; background: transparent; color: #6E7885; cursor: pointer; padding: 0;"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+<div style="padding: 32px 32px 0; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;">
+<span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 14px; background: #FFF4E0; color: #9A5B00;"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="9.5" rx="2.2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg></span>
+<h2 id="sig-titulo" style="margin: 0; font-size: 19px; font-weight: 700; color: #1F2937;">Documento Sigiloso</h2>
+<p id="sig-texto" style="margin: 0; font-size: 14px; line-height: 1.55; color: #525C69;">{{sig.texto}}</p>
+</div>
+<div style="margin: 18px 32px 0; padding: 12px 14px; border-radius: 10px; background: #FAFBFC; border: 1px solid #F1F3F6; display: flex; flex-direction: column; gap: 8px;">
+<span style="font-size: 12px; font-weight: 600; color: #667080;">Informe este código na solicitação</span>
+<button type="button" data-hover="codigo" onClick="{{sig.copiar}}" title="Copiar código" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 34px; padding: 0 10px; border-radius: 8px; border: 1px solid #E8EBF0; background: #FFFFFF; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #1F2937; cursor: pointer;"><span style="min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{sig.codigo}}</span><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#667080" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V6a2 2 0 0 1 2-2h9"></path></svg></button>
+</div>
+<div style="height: 22px; margin: 10px 32px 0; display: flex; justify-content: center;"><sc-if value="{{flash.sigilo}}" hint-placeholder-val="{{false}}"><span role="status" style="{{flash.estilo}}"><sc-if value="{{flash.ok}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg></sc-if><sc-if value="{{flash.alerta}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5"></path><path d="M12 16.4h.01"></path></svg></sc-if><span style="min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{flash.msg}}</span></span></sc-if></div>
+<div style="padding: 8px 32px 28px;">
+<button type="button" data-hover="primario" onClick="{{fecharSigilo}}" style="width: 100%; height: 42px; border-radius: 10px; border: none; background: #5A6370; color: #FFFFFF; font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer;">Entendi</button>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{exclusaoAberta}}" hint-placeholder-val="{{false}}">
+<div onClick="{{fecharFundoExclusao}}" style="position: fixed; inset: 0; z-index: 70; background: rgba(15, 23, 35, 0.42); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; padding: 24px 16px; box-sizing: border-box; overflow-y: auto;">
+<div role="dialog" aria-modal="true" aria-labelledby="exc-titulo" style="position: relative; width: 100%; max-width: 500px; margin: auto 0; background: #FFFFFF; border-radius: 16px; box-shadow: 0 24px 64px rgba(15, 23, 35, 0.28); overflow: hidden;">
+<button type="button" data-hover="suave" onClick="{{fecharExclusao}}" aria-label="Fechar" style="position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; border: none; background: transparent; color: #6E7885; cursor: pointer; padding: 0;"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+<div style="padding: 26px 28px 0; display: flex; align-items: flex-start; gap: 14px;">
+<span aria-hidden="true" style="flex: none; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 12px; background: #FEF3F2; color: #B42318;"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"></path><path d="M9 7V4.8h6V7"></path><path d="M6.5 7l.9 12.2a1.5 1.5 0 0 0 1.5 1.3h6.2a1.5 1.5 0 0 0 1.5-1.3L17.5 7"></path><path d="M10 11v6M14 11v6"></path></svg></span>
+<div style="min-width: 0; display: flex; flex-direction: column; gap: 4px; padding-right: 28px;">
+<h2 id="exc-titulo" style="margin: 0; font-size: 18px; font-weight: 700; color: #1F2937;">{{exc.titulo}}</h2>
+<span style="font-size: 13.5px; color: #525C69; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{exc.docTitulo}}</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #667080;">{{exc.codigo}}</span>
+</div>
+</div>
+<div style="padding: 20px 28px 0; display: flex; flex-direction: column; gap: 16px;">
+<sc-if value="{{exc.temOpcoes}}" hint-placeholder-val="{{false}}">
+<fieldset style="margin: 0; padding: 0; border: none; display: flex; flex-direction: column; gap: 8px;">
+<legend style="margin-bottom: 8px; padding: 0; font-size: 13px; font-weight: 600; color: #374151;">O Que Excluir</legend>
+<sc-for list="{{exc.opcoes}}" as="op" hint-placeholder-count="2">
+<button type="button" role="radio" aria-checked="{{op.sel}}" onClick="{{op.escolher}}" style="{{op.estilo}}">
+<span aria-hidden="true" style="{{op.marca}}"></span>
+<span style="display: flex; flex-direction: column; gap: 2px; text-align: left;"><span style="font-size: 13.5px; font-weight: 600; color: #1F2937;">{{op.rotulo}}</span><span style="font-size: 12.5px; color: #667080;">{{op.dica}}</span></span>
+</button>
+</sc-for>
+</fieldset>
+</sc-if>
+<div style="display: flex; flex-direction: column; gap: 6px;">
+<label for="ac-exc-motivo" style="font-size: 13px; font-weight: 600; color: #374151;">Justificativa</label>
+<textarea id="ac-exc-motivo" rows="3" value="{{exc.motivo}}" onChange="{{exc.setMotivo}}" placeholder="Ex.: arquivo incluído no documento errado" style="{{exc.estMotivo}}"></textarea>
+<sc-if value="{{exc.erro}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 12.5px; color: #B42318;">Escreva uma justificativa com pelo menos 10 caracteres.</span></sc-if>
+</div>
+<p style="margin: 0; padding: 10px 12px; border-radius: 8px; background: #FAFBFC; border: 1px solid #F1F3F6; font-size: 12.5px; line-height: 1.5; color: #525C69;">{{exc.info}}</p>
+</div>
+<div style="padding: 20px 28px 24px; display: flex; justify-content: flex-end; gap: 8px;">
+<button type="button" data-hover="suave" onClick="{{fecharExclusao}}" style="height: 40px; padding: 0 16px; border-radius: 8px; border: none; background: transparent; color: #525C69; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;">Cancelar</button>
+<button type="button" data-hover="perigo" onClick="{{exc.confirmar}}" style="display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 8px; border: none; background: #B42318; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"></path><path d="M9 7V4.8h6V7"></path><path d="M6.5 7l.9 12.2a1.5 1.5 0 0 0 1.5 1.3h6.2a1.5 1.5 0 0 0 1.5-1.3L17.5 7"></path><path d="M10 11v6M14 11v6"></path></svg>{{exc.botao}}</button>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{lixeiraAberta}}" hint-placeholder-val="{{false}}">
+<div onClick="{{fecharFundoLixeira}}" style="position: fixed; inset: 0; z-index: 70; background: rgba(15, 23, 35, 0.42); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; padding: 24px 16px; box-sizing: border-box; overflow-y: auto;">
+<div role="dialog" aria-modal="true" aria-labelledby="lix-titulo" style="position: relative; width: 100%; max-width: 720px; height: min(600px, calc(100vh - 48px)); margin: auto 0; background: #FFFFFF; border-radius: 16px; box-shadow: 0 24px 64px rgba(15, 23, 35, 0.28); overflow: hidden; display: flex; flex-direction: column;">
+<div style="flex: none; padding: 20px 24px 16px; border-bottom: 1px solid #E8EBF0; display: flex; align-items: center; gap: 12px;">
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+<h2 id="lix-titulo" style="margin: 0; font-size: 18px; font-weight: 700; color: #5A6370;">Lixeira</h2>
+<span style="font-size: 13px; color: #667080;">Itens excluídos não aparecem na pesquisa. O gestor pode restaurá-los.</span>
+</div>
+<sc-if value="{{flash.lixeira}}" hint-placeholder-val="{{false}}"><span role="status" style="{{flash.estilo}}"><sc-if value="{{flash.ok}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg></sc-if><sc-if value="{{flash.alerta}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5"></path><path d="M12 16.4h.01"></path></svg></sc-if><span style="min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{flash.msg}}</span></span></sc-if><button type="button" data-hover="suave" onClick="{{fecharLixeira}}" aria-label="Fechar" style="flex: none; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; border: none; background: transparent; color: #6E7885; cursor: pointer; padding: 0;"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+</div>
+<div style="flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 16px 24px; display: flex; flex-direction: column; gap: 10px;">
+<sc-if value="{{lix.vazia}}" hint-placeholder-val="{{false}}"><div style="margin: auto; display: flex; flex-direction: column; align-items: center; gap: 10px; color: #6E7885; text-align: center;"><span style="color: #B2BAC4;"><svg aria-hidden="true" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"></path><path d="M9 7V4.8h6V7"></path><path d="M6.5 7l.9 12.2a1.5 1.5 0 0 0 1.5 1.3h6.2a1.5 1.5 0 0 0 1.5-1.3L17.5 7"></path><path d="M10 11v6M14 11v6"></path></svg></span><span style="font-size: 14.5px; font-weight: 600; color: #525C69;">A Lixeira Está Vazia</span><span style="font-size: 13px;">Documentos e revisões excluídos aparecem aqui.</span></div></sc-if>
+<sc-for list="{{lix.itens}}" as="li" hint-placeholder-count="3">
+<div style="display: flex; align-items: flex-start; gap: 14px; padding: 12px 14px; border: 1px solid #E8EBF0; border-radius: 10px;">
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
+<span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="flex: none; padding: 1px 8px; border-radius: 999px; background: #F1F2F4; color: #4B5563; font-size: 11.5px; font-weight: 600;">{{li.alvo}}</span><span style="min-width: 0; font-size: 13.5px; font-weight: 600; color: #1F2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{li.titulo}}</span></span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #525C69;">{{li.codigo}}</span>
+<span style="font-size: 12.5px; color: #374151;">“{{li.motivo}}”</span>
+<span style="font-size: 12px; color: #6E7885;">Excluído em {{li.quando}} por {{li.por}}</span>
+</div>
+<button type="button" data-hover="secundario" onClick="{{li.restaurar}}" style="flex: none; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid #D8DEE5; background: #FFFFFF; color: #5A6370; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"></path><path d="M4 4v4.5h4.5"></path></svg>Restaurar</button>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{infoAberto}}" hint-placeholder-val="{{false}}">
+<div onClick="{{fecharFundoInfo}}" onKeyDown="{{teclaModal}}" style="position: fixed; inset: 0; z-index: 65; background: rgba(15, 23, 35, 0.42); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; padding: 32px 16px; box-sizing: border-box; overflow-y: auto;">
+<div role="dialog" aria-modal="true" aria-labelledby="info-titulo" style="width: 100%; max-width: 800px; max-height: 100%; display: flex; flex-direction: column; background: #FFFFFF; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; background: #F4F7F6; border-bottom: 1px solid #EEEEEE; border-radius: 12px 12px 0 0;">
+<h2 id="info-titulo" style="margin: 0; font-size: 16px; font-weight: 700; color: #5A6370;">Informações do Sistema</h2>
+<button type="button" data-hover="suave" onClick="{{fecharInfo}}" aria-label="Fechar" style="flex: none; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; border: none; background: transparent; color: #5A6370; cursor: pointer; padding: 0;">
+<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+</button>
+</div>
+<div style="padding: 18px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+<p style="margin: 0; font-size: 14px; font-weight: 700;">DIPRED-DMAN · Acervo Técnico de Engenharia</p>
+<p style="margin: 0; font-size: 14px;">Versão do Sistema: 1.0.0 (Outubro/2026)</p>
+<hr style="width: 100%; border: none; border-top: 1px solid #E6E6E6; margin: 6px 0;">
+<div style="font-size: 12px; line-height: 1.5; text-align: justify; color: #78808A; display: flex; flex-direction: column; gap: 10px;">
+<p style="margin: 0;"><strong>Termos de Uso e Propriedade Técnica</strong><br><strong>Autoria e Propriedade</strong><br>Este software foi desenvolvido por Marcelo Luis da Silva Diehl para uso exclusivo da Direção de Infraestrutura Predial (DIPRED) do Tribunal de Justiça do Rio Grande do Sul (TJRS). A propriedade intelectual do código-fonte pertence ao autor, sendo o direito de uso cedido integralmente ao Tribunal de Justiça do Rio Grande do Sul (TJRS) para fins institucionais.</p>
+<p style="margin: 0;"><strong>Limites de Uso e Distribuição</strong><br>Ambiente Restrito: O uso desta aplicação é restrito à rede privada e aos servidores autorizados pelo DIPRED-DMAN. É expressamente proibida a hospedagem ou execução em servidores externos não homologados pelo departamento, exceto manutenção em repositório de versionamento do autor do projeto mediante ocultação de dados sensíveis ou confidenciais.</p>
+<p style="margin: 0;"><strong>Finalidade</strong><br>A ferramenta destina-se exclusivamente à organização, consulta e controle de revisões da documentação técnica de engenharia do setor.</p>
+<p style="margin: 0;"><strong>Modificações e Manutenção (Código Aberto Setorial)</strong><br>É permitida a leitura, cópia e modificação do código-fonte por outros membros e colaboradores técnicos do departamento, visando a continuidade, correção de bugs e evolução das funcionalidades.</p>
+<p style="margin: 0;">Toda e qualquer modificação derivada deve manter os créditos do autor original e ser devidamente documentada no histórico de versionamento interno.</p>
+<p style="margin: 0;"><strong>Isenção de Responsabilidade</strong><br>O software é fornecido "no estado em que se encontra" (as is). O autor não se responsabiliza por resultados derivados de entradas de dados incorretas ou por usos que firam as políticas de segurança da informação do TJRS. Todos os dados de entrada e de saída do programa deverão ser conferidos pelo usuário.</p>
+</div>
+</div>
+<div style="display: flex; justify-content: flex-end; padding: 12px 20px; border-top: 1px solid #EEEEEE;">
+<button type="button" data-hover="primario" onClick="{{fecharInfo}}" style="height: 34px; padding: 0 16px; border-radius: 6px; border: 1px solid #78808A; background: #78808A; color: #FFFFFF; font: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer;">Fechar</button>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{detalheAberto}}" hint-placeholder-val="{{false}}">
+<div data-l="fundo-g" onClick="{{fecharFundoDetalhe}}" onKeyDown="{{teclaModal}}" style="position: fixed; inset: 0; z-index: 40; background: rgba(15, 23, 35, 0.42); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; padding: 32px 16px; box-sizing: border-box;">
+<aside role="dialog" data-l="modal-g" aria-modal="true" aria-labelledby="det-cab" style="width: 100%; max-width: 1040px; max-height: 100%; background: #FFFFFF; border-radius: 14px; box-shadow: 0 24px 64px rgba(15, 23, 35, 0.28); overflow: hidden; display: flex; flex-direction: column; box-sizing: border-box;">
+<div style="flex: none; padding: 16px 24px; border-bottom: 1px solid #E8EBF0; display: flex; align-items: center; gap: 12px;">
+<div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px;"><h2 id="det-cab" style="flex: none; margin: 0; font-size: 18px; font-weight: 700; color: #5A6370;">Detalhes do Documento</h2><span aria-hidden="true" style="flex: none; width: 1px; height: 18px; background: #E4E7EA;"></span><button type="button" data-hover="suave" onClick="{{det.copiar}}" title="Copiar nome do arquivo" aria-label="{{det.ariaCodigo}}" style="min-width: 0; display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; margin-left: -8px; border-radius: 7px; border: none; background: transparent; color: #667080; font-family: 'IBM Plex Mono', monospace; font-size: 13px; cursor: pointer;"><span style="min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{det.nomeArquivo}}</span><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V6a2 2 0 0 1 2-2h9"></path></svg></button></div>
+<sc-if value="{{flash.det}}" hint-placeholder-val="{{false}}"><span role="status" style="{{flash.estilo}}"><sc-if value="{{flash.ok}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg></sc-if><sc-if value="{{flash.alerta}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5"></path><path d="M12 16.4h.01"></path></svg></sc-if><span style="min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{flash.msg}}</span></span></sc-if>
+<button type="button" data-hover="suave" onClick="{{fecharDetalhe}}" aria-label="Fechar detalhes" style="flex: none; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; border: none; background: transparent; color: #525C69; cursor: pointer; padding: 0;">
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+</button>
+</div>
+<div style="flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column;">
+<div style="flex: 1 1 auto; min-height: 0; padding: 20px 24px 22px; display: flex; flex-direction: column; gap: 20px;">
+<section aria-labelledby="det-titulo" style="display: flex; flex-direction: column; gap: 14px; padding: 16px 18px; border-radius: 10px; background: #FAFBFC; border: 1px solid #F1F3F6;">
+<div style="display: flex; align-items: flex-start; gap: 16px; min-width: 0;">
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+<div style="display: flex; align-items: center; gap: 8px; min-width: 0; color: #374151; {{det.fadeC}}"><sc-if value="{{det.lendoClassif}}" hint-placeholder-val="{{true}}"><span title="{{det.predioNome}}" style="min-width: 0; font-size: 18px; font-weight: 700; line-height: 1.3; color: #1F2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{det.predioNome}}</span><sc-if value="{{det.temUso}}" hint-placeholder-val="{{true}}"><span style="flex: none; padding: 2px 8px; border-radius: 999px; background: #F1F2F4; color: #525C69; font-size: 12px; font-weight: 600;">{{det.predioUso}}</span></sc-if></sc-if><sc-if value="{{det.corrigindo}}" hint-placeholder-val="{{false}}"><div style="width: 100%; max-width: 460px;"><select id="ac-d-predio" aria-label="Prédio" value="{{predioSel}}" onChange="{{setPredioSel}}" style="{{estC.predio}}"><option value="">Selecione o prédio</option><sc-for list="{{predioOpcoes}}" as="po" hint-placeholder-count="3"><option value="{{po.v}}">{{po.t}}</option></sc-for></select></div></sc-if></div>
+<h3 id="det-titulo" style="{{det.fadeAmbos}} margin: 0; font-size: 16px; font-weight: 600; line-height: 1.3; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{det.titulo}}</h3>
+</div>
+<div style="flex: none; display: flex; align-items: center; gap: 8px;">
+<span style="{{det.fadeAmbos}} flex: none; display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; box-sizing: border-box; border-radius: 999px; background: #F1F2F4; color: #525C69; font-size: 12.5px; white-space: nowrap;">{{det.rotuloRev}} <b style="color: #1F2937; font-weight: 700; font-variant-numeric: tabular-nums;">{{det.revSel}}</b></span>
+<span style="{{det.fadeI}} flex: none; margin-left: 4px; font-size: 12.5px; color: #667080;">Status:</span>
+<sc-if value="{{det.lendoInfo}}" hint-placeholder-val="{{true}}"><span style="{{det.badgeSel}} height: 28px; box-sizing: border-box; {{det.fadeI}}"><span aria-hidden="true" style="{{det.pontoSel}}"></span>{{det.v.status}}</span></sc-if>
+<sc-if value="{{det.editInfo}}" hint-placeholder-val="{{false}}"><div style="width: 180px;"><select id="ac-d-status" aria-label="Status" value="{{status}}" onChange="{{setStatus}}" style="{{estDet.status}}">
+<option value="">Selecione</option>
+<option value="Em elaboração">Em elaboração</option>
+<option value="Aprovado">Aprovado</option>
+<option value="Cancelado">Cancelado</option>
+</select></div></sc-if>
+</div>
+</div>
+<dl data-l="det-faixa4" style="margin: 0; display: grid; gap: 12px 20px; padding-top: 14px; border-top: 1px solid #F1F3F6;">
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0; {{det.fadeC}}">
+<dt style="font-size: 12px; color: #667080;">Disciplina</dt>
+<dd style="margin: 0; height: 34px; display: flex; align-items: center; min-width: 0;">
+<sc-if value="{{det.lendoClassif}}" hint-placeholder-val="{{true}}"><span title="{{det.v.disc}}" style="min-width: 0; font-size: 13.5px; font-weight: 600; line-height: 17px; color: #1F2937; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;">{{det.v.disc}}</span></sc-if><sc-if value="{{det.corrigindo}}" hint-placeholder-val="{{false}}"><select id="ac-d-disc" aria-label="Disciplina" value="{{disc}}" onChange="{{setDisc}}" style="{{estC.disc}}"><option value="">Selecione</option><sc-for list="{{discOpcoes}}" as="dop" hint-placeholder-count="5"><option value="{{dop.v}}">{{dop.t}}</option></sc-for></select></sc-if>
+</dd>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0; {{det.fadeC}}">
+<dt style="font-size: 12px; color: #667080;">Assunto</dt>
+<dd style="margin: 0; height: 34px; display: flex; align-items: center; min-width: 0;">
+<sc-if value="{{det.lendoClassif}}" hint-placeholder-val="{{true}}"><span title="{{det.v.sis}}" style="min-width: 0; font-size: 13.5px; font-weight: 600; line-height: 17px; color: #1F2937; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;">{{det.v.sis}}</span></sc-if><sc-if value="{{det.corrigindo}}" hint-placeholder-val="{{false}}"><select id="ac-d-sis" aria-label="Assunto" value="{{sis}}" onChange="{{setSis}}" disabled="{{semDisc}}" style="{{estC.sis}}"><option value="">{{sisPh}}</option><sc-for list="{{sisOpcoes}}" as="so" hint-placeholder-count="3"><option value="{{so.v}}">{{so.t}}</option></sc-for></select></sc-if>
+</dd>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0; {{det.fadeC}}">
+<dt style="font-size: 12px; color: #667080;">Tipo</dt>
+<dd style="margin: 0; height: 34px; display: flex; align-items: center; min-width: 0;">
+<sc-if value="{{det.lendoClassif}}" hint-placeholder-val="{{true}}"><span title="{{det.v.tipo}}" style="min-width: 0; font-size: 13.5px; font-weight: 600; line-height: 17px; color: #1F2937; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;">{{det.v.tipo}}</span></sc-if><sc-if value="{{det.corrigindo}}" hint-placeholder-val="{{false}}"><select id="ac-d-tipo" aria-label="Tipo de documento" value="{{tipo}}" onChange="{{setTipo}}" style="{{estC.tipo}}"><option value="">Selecione</option><sc-for list="{{tipoGrupos}}" as="tg" hint-placeholder-count="4"><optgroup label="{{tg.nome}}"><sc-for list="{{tg.itens}}" as="ti" hint-placeholder-count="5"><option value="{{ti.v}}">{{ti.t}}</option></sc-for></optgroup></sc-for></select></sc-if>
+</dd>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0; {{det.fadeI}}">
+<dt style="font-size: 12px; color: #667080;">Etapa</dt>
+<dd style="margin: 0; height: 34px; display: flex; align-items: center; min-width: 0;">
+<sc-if value="{{det.lendoInfo}}" hint-placeholder-val="{{true}}"><span title="{{det.v.fase}}" style="min-width: 0; font-size: 13.5px; font-weight: 600; line-height: 17px; color: #1F2937; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;">{{det.v.fase}}</span></sc-if>
+<sc-if value="{{det.editInfo}}" hint-placeholder-val="{{false}}"><select id="ac-d-fase" aria-label="Etapa" value="{{fase}}" onChange="{{setFase}}" disabled="{{faseFixa}}" title="{{faseDica}}" style="{{estDet.fase}}">
+<option value="">Selecione</option>
+<option value="EST">Estudo Preliminar</option>
+<option value="ANT">Anteprojeto</option>
+<option value="BAS">Projeto Básico</option>
+<option value="EXE">Projeto Executivo</option>
+<option value="OBR" disabled="{{faseProj}}">Obra</option>
+<option value="ASB">As Built</option>
+<option value="MAN" disabled="{{faseProj}}">Uso e Manutenção</option>
+<option value="NA" disabled="{{faseProj}}">Não se Aplica</option>
+</select></sc-if>
+</dd>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0; {{det.fadeI}}">
+<dt style="font-size: 12px; color: #667080;">Acesso</dt>
+<dd style="margin: 0; height: 34px; display: flex; align-items: center; min-width: 0;">
+<sc-if value="{{det.lendoInfo}}" hint-placeholder-val="{{true}}"><span title="{{det.v.acesso}}" style="min-width: 0; font-size: 13.5px; font-weight: 600; line-height: 17px; color: #1F2937; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;">{{det.v.acesso}}</span></sc-if>
+<sc-if value="{{det.editInfo}}" hint-placeholder-val="{{false}}"><select id="ac-d-acesso" aria-label="Acesso" value="{{acesso}}" onChange="{{setAcesso}}" style="{{estDet.acesso}}">
+<option value="">Selecione</option>
+<option value="Público">Público</option>
+<option value="Acesso controlado">Acesso controlado</option>
+<option value="Informação classificada">Informação classificada</option>
+</select></sc-if>
+</dd>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0; {{det.fadeI}}">
+<dt style="font-size: 12px; color: #667080;">Grau de sigilo</dt>
+<dd style="margin: 0; height: 34px; display: flex; align-items: center; min-width: 0;">
+<sc-if value="{{det.lendoInfo}}" hint-placeholder-val="{{true}}"><span title="{{det.v.sigilo}}" style="min-width: 0; font-size: 13.5px; font-weight: 600; line-height: 17px; color: #1F2937; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;">{{det.v.sigilo}}</span></sc-if>
+<sc-if value="{{det.editInfo}}" hint-placeholder-val="{{false}}"><select id="ac-d-sigilo" aria-label="Grau de sigilo" value="{{sigilo}}" onChange="{{setSigilo}}" disabled="{{semSigilo}}" style="{{estDet.sigilo}}">
+<option value="">Selecione</option>
+<option value="Reservada">Reservada</option>
+<option value="Secreta">Secreta</option>
+<option value="Ultrassecreta">Ultrassecreta</option>
+</select></sc-if>
+</dd>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0; {{det.fadeI}}">
+<dt style="font-size: 12px; color: #667080;">Processo SEI</dt>
+<dd style="margin: 0; height: 34px; display: flex; align-items: center; min-width: 0;">
+<sc-if value="{{det.lendoInfo}}" hint-placeholder-val="{{true}}"><span title="{{det.v.seiTexto}}" style="min-width: 0; font-size: 13.5px; line-height: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; {{det.v.estiloSei}}">{{det.v.seiTexto}}</span></sc-if>
+<sc-if value="{{det.editInfo}}" hint-placeholder-val="{{false}}"><input id="ac-d-sei" type="text" inputmode="numeric" aria-label="Processo SEI" placeholder="Opcional" value="{{sei}}" onChange="{{setSei}}" style="{{estDet.sei}}"></sc-if>
+</dd>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0; {{det.fadeI}}">
+<dt style="font-size: 12px; color: #667080;">Número do ticket</dt>
+<dd style="margin: 0; height: 34px; display: flex; align-items: center; min-width: 0;">
+<sc-if value="{{det.lendoInfo}}" hint-placeholder-val="{{true}}"><span title="{{det.v.resp}}" style="min-width: 0; font-size: 13.5px; font-weight: 600; line-height: 17px; color: #1F2937; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;">{{det.v.resp}}</span></sc-if>
+<sc-if value="{{det.editInfo}}" hint-placeholder-val="{{false}}"><input id="ac-d-ticket" type="text" aria-label="Número do ticket" placeholder="Opcional" value="{{ticket}}" onChange="{{setTicket}}" style="{{estDet.ticket}}"></sc-if>
+</dd>
+</div>
+</dl>
+</section>
+
+<sc-if value="{{det.semCorrecao}}" hint-placeholder-val="{{true}}"><section style="display: flex; flex-direction: column; gap: 8px;">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 18px; line-height: 18px;">
+<h3 style="margin: 0; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #667080;">Descrição</h3>
+<sc-if value="{{det.editInfo}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; color: #667080; font-variant-numeric: tabular-nums;">{{contadorComentario}}</span></sc-if>
+</div>
+<sc-if value="{{det.lendoInfo}}" hint-placeholder-val="{{true}}"><div data-l="desc" style="{{det.estiloDescricao}}">{{det.comentarioTexto}}</div></sc-if>
+<sc-if value="{{det.editInfo}}" hint-placeholder-val="{{false}}"><textarea data-l="desc" id="ac-d-coment" aria-label="Descrição" rows="4" maxlength="500" value="{{comentario}}" onChange="{{setComentario}}" placeholder="Descreva o conteúdo do documento" style="{{estDetComentario}}"></textarea></sc-if>
+</section></sc-if>
+<sc-if value="{{det.corrigindo}}" hint-placeholder-val="{{false}}"><section style="display: flex; flex-direction: column; gap: 8px;">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 18px; line-height: 18px;">
+<h3 style="margin: 0; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #667080;">Justificativa da Correção</h3>
+<span style="font-size: 12px; color: #667080; font-variant-numeric: tabular-nums;">{{contadorJust}}</span>
+</div>
+<textarea data-l="desc" id="ac-d-just" aria-label="Justificativa da correção" rows="4" maxlength="300" value="{{justificativa}}" onChange="{{setJustificativa}}" placeholder="Explique por que a classificação está sendo corrigida (mínimo de 10 caracteres)" style="{{estJustDet}}"></textarea>
+</section></sc-if>
+
+<section style="flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 8px; {{det.fadeAmbos}}">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+<h3 style="margin: 0; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #6E7885;">Revisões e Arquivos</h3>
+<sc-if value="{{det.naoSuperada}}" hint-placeholder-val="{{true}}"><span style="font-size: 12px; color: #667080;">{{det.nRevisoes}}</span></sc-if>
+<sc-if value="{{det.superada}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: baseline; gap: 10px; font-size: 12.5px; color: #774700;">{{det.avisoRev}}<button type="button" data-hover="link" onClick="{{det.verAtual}}" style="background: transparent; border: none; padding: 0; color: #6B4500; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;">{{det.textoVer}}</button></span></sc-if>
+</div>
+<div style="flex: 1 1 auto; min-height: 128px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 2px; box-sizing: border-box;">
+<sc-for list="{{det.arquivos}}" as="ar" hint-placeholder-count="2">
+<div style="{{ar.estiloLinha}}">
+<button type="button" onClick="{{ar.escolher}}" aria-pressed="{{ar.ativa}}" aria-label="{{ar.aria}}" style="flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 10px 0 10px 12px; border: none; background: transparent; font: inherit; text-align: left; cursor: pointer; color: inherit;">
+<span style="{{ar.revEstilo}}">{{ar.rev}}</span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+<span title="{{ar.nome}}" style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #1F2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ar.nome}}</span>
+<span style="font-size: 12px; color: #6E7885;">{{ar.meta}}</span>
+</span>
+</button>
+<sc-if value="{{ar.temUrl}}" hint-placeholder-val="{{false}}">
+<a href="{{ar.url}}" download="{{ar.nome}}" data-hover="secundario" style="flex: none; margin: 0 10px; display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid #D8DEE5; background: #FFFFFF; color: #5A6370; font-size: 13px; font-weight: 600; text-decoration: none; gap: 6px;"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg>Baixar</a>
+</sc-if>
+<sc-if value="{{ar.semUrl}}" hint-placeholder-val="{{true}}">
+<button type="button" data-hover="secundario" onClick="{{ar.exemplo}}" style="flex: none; margin: 0 10px; display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid #D8DEE5; background: #FFFFFF; color: #5A6370; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; gap: 6px;"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg>Baixar</button>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</section>
+</div>
+</div>
+<div style="flex: none; padding: 14px 24px; border-top: 1px solid #E8EBF0; background: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+<sc-if value="{{det.lendo}}" hint-placeholder-val="{{true}}">
+<sc-if value="{{gestor}}" hint-placeholder-val="{{false}}">
+<button type="button" data-hover="secundario" onClick="{{det.corrigir}}" style="flex: none; display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 14px; border-radius: 8px; border: 1px dashed #D8DEE5; background: #FFFFFF; color: #525C69; font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer;">Corrigir classificação</button>
+<button type="button" data-hover="excluir" onClick="{{det.excluir}}" style="flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 40px; padding: 0 14px; border-radius: 8px; border: 1px solid #F3D3CF; background: #FFFFFF; color: #B42318; font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"></path><path d="M9 7V4.8h6V7"></path><path d="M6.5 7l.9 12.2a1.5 1.5 0 0 0 1.5 1.3h6.2a1.5 1.5 0 0 0 1.5-1.3L17.5 7"></path><path d="M10 11v6M14 11v6"></path></svg>Excluir</button>
+</sc-if>
+<sc-if value="{{det.temAlteracoes}}" hint-placeholder-val="{{false}}">
+<div style="position: relative; flex: none;">
+<button type="button" data-hover="suave" onClick="{{det.alternarAlteracoes}}" aria-expanded="{{det.verAlteracoes}}" style="display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; border-radius: 8px; border: none; background: transparent; color: #525C69; font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer;">{{det.textoAlteracoes}}</button>
+<sc-if value="{{det.verAlteracoes}}" hint-placeholder-val="{{false}}">
+<div role="dialog" aria-label="Alterações registradas" style="position: absolute; left: 0; bottom: 48px; z-index: 6; width: 400px; max-width: calc(100vw - 64px); max-height: 300px; overflow-y: auto; padding: 14px 16px 6px; background: #FFFFFF; border: 1px solid #E8EBF0; border-radius: 12px; box-shadow: 0 18px 44px rgba(15, 23, 35, 0.18); box-sizing: border-box;">
+<span style="display: block; margin-bottom: 10px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #667080;">Alterações Após a Inclusão</span>
+<ol style="list-style: none; margin: 0; padding: 0;">
+<sc-for list="{{det.alteracoes}}" as="h" hint-placeholder-count="2">
+<li style="display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-top: 1px solid #F1F3F6;">
+<span style="font-size: 13.5px; font-weight: 600; color: #1F2937;">{{h.acao}}</span>
+<sc-if value="{{h.temDetalhe}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #374151; white-space: pre-line; overflow-wrap: anywhere;">{{h.detalhe}}</span></sc-if>
+<span style="font-size: 12px; color: #667080;">{{h.quando}} · {{h.por}}</span>
+</li>
+</sc-for>
+</ol>
+</div>
+</sc-if>
+</div>
+</sc-if>
+<span style="flex: 1 1 auto;"></span>
+<button type="button" data-hover="secundario" onClick="{{det.editar}}" style="flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 8px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid #D8DEE5; background: #FFFFFF; color: #5A6370;"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4Z"></path><path d="m14 6 4 4"></path></svg>Editar informações</button>
+<button type="button" data-hover="primario" onClick="{{det.revisar}}" style="flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 8px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid #6E7783; background: #6E7783; color: #FFFFFF;"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4"></path><path d="m7 9 5-5 5 5"></path><path d="M5 20h14"></path></svg>Incluir revisão</button>
+</sc-if>
+<sc-if value="{{det.editandoNormal}}" hint-placeholder-val="{{false}}">
+<span role="status" style="{{det.estiloAvisoEd}}">{{det.avisoEd}}</span>
+<button type="button" data-hover="suave" onClick="{{det.cancelarEd}}" style="flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 8px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: #525C69;">Cancelar</button>
+<button type="button" data-hover="primario" onClick="{{det.salvarEd}}" style="flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 8px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid #6E7783; background: #6E7783; color: #FFFFFF;"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg>Salvar alterações</button>
+</sc-if>
+<sc-if value="{{det.confirmandoSaida}}" hint-placeholder-val="{{false}}">
+<span role="alert" style="flex: 1 1 auto; min-width: 0; font-size: 13.5px; font-weight: 600; color: #774700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Há alterações não salvas. Deseja descartá-las?</span>
+<button type="button" data-hover="secundario" onClick="{{det.descartarEd}}" style="flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 8px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid #D8DEE5; background: #FFFFFF; color: #5A6370;">Descartar</button>
+<button type="button" data-hover="primario" onClick="{{det.continuarEd}}" style="flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 8px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid #6E7783; background: #6E7783; color: #FFFFFF;">Continuar editando</button>
+</sc-if>
+</div>
+</aside>
+</div>
+</sc-if>
+
+<sc-if value="{{formAberto}}" hint-placeholder-val="{{false}}">
+<div data-l="fundo-g" onClick="{{fecharFundoForm}}" onKeyDown="{{teclaModal}}" style="position: fixed; inset: 0; z-index: 50; background: rgba(15, 23, 35, 0.42); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; padding: 32px 16px; box-sizing: border-box;">
+<div role="dialog" data-l="modal-g" aria-modal="true" aria-labelledby="form-titulo" style="position: relative; width: 100%; max-width: 1040px; max-height: 100%; background: #FFFFFF; border-radius: 14px; box-shadow: 0 24px 64px rgba(15, 23, 35, 0.28);">
+<div style="{{formCamada}}">
+<div style="padding: 16px 24px; border-bottom: 1px solid #E8EBF0; display: flex; align-items: center; gap: 12px;">
+<h2 id="form-titulo" style="flex: 1; min-width: 0; margin: 0; font-size: 18px; font-weight: 700; color: #5A6370;">{{formTitulo}}</h2>
+<button type="button" data-hover="suave" onClick="{{fecharForm}}" aria-label="Fechar" style="flex: none; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; border: none; background: transparent; color: #525C69; cursor: pointer; padding: 0;">
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+</button>
+</div>
+
+<sc-if value="{{formNovo}}" hint-placeholder-val="{{true}}">
+<div data-l="form-corpo" style="flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 22px 24px 24px; display: flex; flex-direction: column; justify-content: space-between; gap: 22px;">
+<section style="display: flex; flex-direction: column; gap: 8px;">
+<h3 style="margin: 0; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #667080;">Arquivo</h3>
+<div data-l="drop" onDragOver="{{onDragOver}}" onDragLeave="{{onDragLeave}}" onDrop="{{onDrop}}" style="{{dropEstilo}}">
+<input id="ac-arquivo" type="file" accept=".pdf,.dwg,.dxf,.dwf,.rvt,.ifc,.skp,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.tif,.tiff,.kmz,.zip" onChange="{{onFile}}" style="position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden;">
+<sc-if value="{{semArquivo}}" hint-placeholder-val="{{true}}">
+<label for="ac-arquivo" style="flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; gap: 12px; cursor: pointer;">
+<span aria-hidden="true" style="flex: none; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: #F1F2F4; color: #5A6370;">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"></path><path d="m7 9 5-5 5 5"></path><path d="M5 20h14"></path></svg>
+</span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+<span style="font-size: 14px; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><span style="color: #5A6370; font-weight: 600;">Clique para escolher</span> ou arraste o arquivo até aqui</span>
+<span role="alert" style="{{arqDicaEstilo}}">{{arqDica}}</span>
+</span>
+</label>
+</sc-if>
+<sc-if value="{{temArquivo}}" hint-placeholder-val="{{false}}">
+<span style="{{arqExtEstilo}}">{{arqExt}}</span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+<span title="{{arqNome}}" style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{arqNome}}</span>
+<sc-if value="{{semDuplicado}}" hint-placeholder-val="{{true}}"><span style="font-size: 12.5px; color: #667080; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{arqTamanho}} · será renomeado automaticamente</span></sc-if>
+<sc-if value="{{temDuplicado}}" hint-placeholder-val="{{false}}">
+<span role="alert" style="min-width: 0; display: flex; align-items: baseline; gap: 12px; font-size: 12.5px; color: #774700;">
+<span title="{{dup.nome}}" style="min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Idêntico a um arquivo do acervo: <span style="font-family: 'IBM Plex Mono', monospace;">{{dup.nome}}</span></span>
+<button type="button" data-hover="link" onClick="{{dup.ver}}" style="flex: none; background: transparent; border: none; padding: 0; color: #6B4500; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;">Ver</button>
+<button type="button" data-hover="link" onClick="{{dup.confirmar}}" aria-pressed="{{dup.ok}}" style="flex: none; background: transparent; border: none; padding: 0; color: #6B4500; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;">{{dup.textoConfirmar}}</button>
+</span>
+</sc-if>
+</span>
+<label for="ac-arquivo" data-hover="secundario" style="flex: none; display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #D8DEE5; background: #FFFFFF; color: #5A6370; font-size: 13px; font-weight: 600; cursor: pointer;">Trocar</label>
+</sc-if>
+</div>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 20px 32px;">
+<div style="flex: 1 1 380px; min-width: 0; display: grid;">
+<section style="{{camadaClassif}}">
+<h3 style="margin: 0; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #667080;">Classificação</h3>
+<div data-l="grade" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px;">
+<div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px; position: relative; min-width: 0;">
+<label for="ac-f-predio" style="font-size: 13px; font-weight: 600; color: #374151;">Prédio ou unidade</label>
+<input id="ac-f-predio" type="text" role="combobox" aria-autocomplete="list" aria-expanded="{{cp.aberto}}" aria-controls="ac-f-lista" aria-invalid="{{err.predio}}" autocomplete="off" value="{{cp.txt}}" onChange="{{cp.onChange}}" onFocus="{{cp.onFocus}}" onBlur="{{cp.onBlur}}" onKeyDown="{{cp.onKeyDown}}" placeholder="Digite a cidade ou o nome do prédio" style="{{est.predio}}">
+<sc-if value="{{cp.aberto}}" hint-placeholder-val="{{false}}">
+<div id="ac-f-lista" role="listbox" aria-label="Prédios" style="position: absolute; top: 68px; left: 0; right: 0; z-index: 5; max-height: 240px; overflow-y: auto; background: #FFFFFF; border: 1px solid #E3E7ED; border-radius: 10px; box-shadow: 0 12px 32px rgba(15, 23, 35, 0.16); padding: 4px 0;">
+<sc-for list="{{cp.opcoes}}" as="po" hint-placeholder-count="5">
+<button type="button" role="option" aria-selected="{{po.ativo}}" tabindex="-1" onMouseDown="{{po.escolher}}" style="{{po.estilo}}"><span style="flex: 1; min-width: 0;">{{po.nome}}</span><span style="flex: none; font-size: 11.5px; color: #667080;">{{po.tag}}</span></button>
+</sc-for>
+<sc-if value="{{cp.semOpcao}}" hint-placeholder-val="{{false}}"><div style="padding: 10px 14px; font-size: 13px; color: #667080;">Nenhum prédio encontrado.</div></sc-if>
+</div>
+</sc-if>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+<label for="ac-f-disc" style="font-size: 13px; font-weight: 600; color: #374151;">Disciplina</label>
+<select id="ac-f-disc" value="{{disc}}" onChange="{{setDisc}}" aria-invalid="{{err.disc}}" style="{{est.disc}}">
+<option value="">Selecione</option>
+<option value="ARQ">Arquitetura</option>
+<option value="CIV">Civil</option>
+<option value="ELE">Elétrica</option>
+<option value="TEL">Telecomunicações</option>
+<option value="MEC">Mecânica</option>
+</select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+<label for="ac-f-sis" style="font-size: 13px; font-weight: 600; color: #374151;">Assunto</label>
+<select id="ac-f-sis" value="{{sis}}" onChange="{{setSis}}" disabled="{{semDisc}}" aria-invalid="{{err.sis}}" style="{{estSis}}">
+<option value="">{{sisPh}}</option>
+<sc-for list="{{sisOpcoes}}" as="so" hint-placeholder-count="5"><option value="{{so.v}}" disabled="{{so.sep}}">{{so.t}}</option></sc-for>
+</select>
+</div>
+<div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+<label for="ac-f-tipo" style="font-size: 13px; font-weight: 600; color: #374151;">Tipo de documento</label>
+<select id="ac-f-tipo" value="{{tipo}}" onChange="{{setTipo}}" aria-invalid="{{err.tipo}}" style="{{est.tipo}}">
+<option value="">Selecione</option>
+<optgroup label="Projeto">
+<option value="PRA">Prancha (desenho técnico)</option>
+<option value="MEM">Memorial descritivo</option>
+<option value="MC">Memória de cálculo</option>
+<option value="ET">Especificação técnica</option>
+<option value="LIS">Lista de materiais e quantitativos</option>
+</optgroup>
+<optgroup label="Execução">
+<option value="RDO">Relatório diário de obra</option>
+<option value="MED">Medição</option>
+<option value="CRO">Cronograma</option>
+<option value="TRB">Termo de recebimento</option>
+</optgroup>
+<optgroup label="Manutenção e inspeção">
+<option value="LAU">Laudo</option>
+<option value="REL">Relatório técnico</option>
+<option value="PT">Parecer / nota técnica</option>
+<option value="POP">Procedimento</option>
+<option value="PMN">Plano de manutenção</option>
+<option value="MAN">Manual / catálogo técnico</option>
+</optgroup>
+<optgroup label="Administrativo">
+<option value="ART">ART/RRT</option>
+<option value="ORC">Orçamento</option>
+<option value="TR">Termo de referência</option>
+<option value="OS">Ordem de serviço</option>
+<option value="OF">Ofício</option>
+<option value="ATA">Ata</option>
+<option value="ALV">Alvará / licença</option>
+</optgroup>
+</select>
+</div>
+</div>
+</section>
+</div>
+
+<section style="flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 12px;">
+<h3 style="margin: 0; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #667080;">Situação</h3>
+<div data-l="grade" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px;">
+<div style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+<label for="ac-f-status" style="font-size: 13px; font-weight: 600; color: #374151;">Status</label>
+<select id="ac-f-status" value="{{status}}" onChange="{{setStatus}}" aria-invalid="{{err.status}}" style="{{est.status}}">
+<option value="">Selecione</option>
+<option value="Em elaboração">Em elaboração</option>
+<option value="Aprovado">Aprovado</option>
+<option value="Cancelado">Cancelado</option>
+</select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+<label for="ac-f-fase" style="font-size: 13px; font-weight: 600; color: #374151;">Etapa</label>
+<select id="ac-f-fase" value="{{fase}}" onChange="{{setFase}}" aria-invalid="{{err.fase}}" disabled="{{faseFixa}}" title="{{faseDica}}" style="{{estFase}}">
+<option value="">Selecione</option>
+<option value="EST">Estudo Preliminar</option>
+<option value="ANT">Anteprojeto</option>
+<option value="BAS">Projeto Básico</option>
+<option value="EXE">Projeto Executivo</option>
+<option value="OBR" disabled="{{faseProj}}">Obra</option>
+<option value="ASB">As Built</option>
+<option value="MAN" disabled="{{faseProj}}">Uso e Manutenção</option>
+<option value="NA" disabled="{{faseProj}}">Não se Aplica</option>
+</select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+<label for="ac-f-acesso" style="font-size: 13px; font-weight: 600; color: #374151;">Acesso</label>
+<select id="ac-f-acesso" value="{{acesso}}" onChange="{{setAcesso}}" aria-invalid="{{err.acesso}}" style="{{est.acesso}}">
+<option value="">Selecione</option>
+<option value="Público">Público</option>
+<option value="Acesso controlado">Acesso controlado</option>
+<option value="Informação classificada">Informação classificada</option>
+</select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+<label for="ac-f-sigilo" style="font-size: 13px; font-weight: 600; color: #374151;">Grau de sigilo</label>
+<select id="ac-f-sigilo" value="{{sigilo}}" onChange="{{setSigilo}}" aria-invalid="{{err.sigilo}}" style="{{estSigiloF}}" disabled="{{semSigilo}}">
+<option value="">Selecione</option>
+<option value="Reservada">Reservada</option>
+<option value="Secreta">Secreta</option>
+<option value="Ultrassecreta">Ultrassecreta</option>
+</select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+<label for="ac-f-ticket" style="font-size: 13px; font-weight: 600; color: #374151;">Número do ticket</label>
+<input id="ac-f-ticket" type="text" autocomplete="off" value="{{ticket}}" onChange="{{setTicket}}" placeholder="Opcional" aria-invalid="{{err.ticket}}" style="{{est.ticket}}">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+<label for="ac-f-sei" style="font-size: 13px; font-weight: 600; color: #374151;">Processo SEI</label>
+<input id="ac-f-sei" type="text" inputmode="numeric" autocomplete="off" value="{{sei}}" onChange="{{setSei}}" placeholder="Opcional" style="{{est.sei}}">
+</div>
+</div>
+</section>
+</div>
+
+<section style="display: flex; flex-direction: column; gap: 6px;">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+<label for="ac-f-coment" style="font-size: 13px; font-weight: 600; color: #374151;">Descrição <span style="font-weight: 400; color: #667080;">(opcional)</span></label>
+<span style="font-size: 12px; color: #667080; font-variant-numeric: tabular-nums;">{{contadorComentario}}</span>
+</div>
+<textarea id="ac-f-coment" rows="4" maxlength="500" value="{{comentario}}" onChange="{{setComentario}}" placeholder="{{placeholderComentario}}" style="{{estComentarioF}}"></textarea>
+</section>
+</div>
+</sc-if>
+<sc-if value="{{formRevisao}}" hint-placeholder-val="{{false}}">
+<div data-l="form-corpo" style="flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 22px 24px 24px; display: flex; flex-direction: column; gap: 26px;">
+<section style="display: flex; flex-direction: column; gap: 10px;">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+<h3 style="margin: 0; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #667080; opacity: 0.55;">Documento</h3>
+<sc-if value="{{veioDeNovo}}" hint-placeholder-val="{{false}}"><button type="button" data-hover="link" onClick="{{voltarParaNovo}}" style="background: transparent; border: none; padding: 0; color: #5A6370; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer;">Não é revisão: voltar para documento novo</button></sc-if>
+</div>
+<div style="display: flex; flex-direction: column; gap: 14px; padding: 16px 18px; border-radius: 10px; background: #FAFBFC; border: 1px solid #F1F3F6; opacity: 0.55;">
+<div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
+<span style="font-size: 17px; font-weight: 700; color: #1F2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{formRev.titulo}}</span>
+<span style="font-size: 13px; color: #525C69; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #374151;">{{formRev.codigo}}</span> · {{formRev.predio}}</span>
+</div>
+<span style="flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: #E7F6EE; color: #17643A; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums;">{{formRev.atual}} <span aria-hidden="true">→</span> {{formRev.nova}}</span>
+</div>
+<dl style="margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 20px; padding-top: 14px; border-top: 1px solid #F1F3F6;">
+<div style="min-width: 0;"><dt style="font-size: 12px; color: #667080;">Disciplina</dt><dd style="margin: 3px 0 0; font-size: 13.5px; font-weight: 600; color: #1F2937;">{{formRev.disc}}</dd></div>
+<div style="min-width: 0;"><dt style="font-size: 12px; color: #667080;">Assunto</dt><dd style="margin: 3px 0 0; font-size: 13.5px; font-weight: 600; color: #1F2937;">{{formRev.sis}}</dd></div>
+<div style="min-width: 0;"><dt style="font-size: 12px; color: #667080;">Tipo</dt><dd style="margin: 3px 0 0; font-size: 13.5px; font-weight: 600; color: #1F2937;">{{formRev.tipo}}</dd></div>
+
+<div style="min-width: 0;"><dt style="font-size: 12px; color: #667080;">Última revisão</dt><dd title="{{formRev.vigenteInfo}}" style="margin: 3px 0 0; font-size: 13.5px; font-weight: 600; color: #1F2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{formRev.vigenteInfo}}</dd></div>
+</dl>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 8px;">
+<h3 style="margin: 0; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #667080;">Arquivo da {{formRev.nova}}</h3>
+<div data-l="drop" onDragOver="{{onDragOver}}" onDragLeave="{{onDragLeave}}" onDrop="{{onDrop}}" style="{{dropEstilo}}">
+<input id="ac-arquivo" type="file" accept=".pdf,.dwg,.dxf,.dwf,.rvt,.ifc,.skp,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.tif,.tiff,.kmz,.zip" onChange="{{onFile}}" style="position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden;">
+<sc-if value="{{semArquivo}}" hint-placeholder-val="{{true}}">
+<label for="ac-arquivo" style="flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; gap: 12px; cursor: pointer;">
+<span aria-hidden="true" style="flex: none; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: #F1F2F4; color: #5A6370;">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"></path><path d="m7 9 5-5 5 5"></path><path d="M5 20h14"></path></svg>
+</span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+<span style="font-size: 14px; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><span style="color: #5A6370; font-weight: 600;">Clique para escolher</span> ou arraste o arquivo até aqui</span>
+<span role="alert" style="{{arqDicaEstilo}}">{{arqDica}}</span>
+</span>
+</label>
+</sc-if>
+<sc-if value="{{temArquivo}}" hint-placeholder-val="{{false}}">
+<span style="{{arqExtEstilo}}">{{arqExt}}</span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+<span title="{{arqNome}}" style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{arqNome}}</span>
+<sc-if value="{{semDuplicado}}" hint-placeholder-val="{{true}}"><span style="font-size: 12.5px; color: #667080; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{arqTamanho}} · será renomeado automaticamente</span></sc-if>
+<sc-if value="{{temDuplicado}}" hint-placeholder-val="{{false}}">
+<span role="alert" style="min-width: 0; display: flex; align-items: baseline; gap: 12px; font-size: 12.5px; color: #774700;">
+<span title="{{dup.nome}}" style="min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Idêntico a um arquivo do acervo: <span style="font-family: 'IBM Plex Mono', monospace;">{{dup.nome}}</span></span>
+<button type="button" data-hover="link" onClick="{{dup.ver}}" style="flex: none; background: transparent; border: none; padding: 0; color: #6B4500; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;">Ver</button>
+<button type="button" data-hover="link" onClick="{{dup.confirmar}}" aria-pressed="{{dup.ok}}" style="flex: none; background: transparent; border: none; padding: 0; color: #6B4500; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;">{{dup.textoConfirmar}}</button>
+</span>
+</sc-if>
+</span>
+<label for="ac-arquivo" data-hover="secundario" style="flex: none; display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #D8DEE5; background: #FFFFFF; color: #5A6370; font-size: 13px; font-weight: 600; cursor: pointer;">Trocar</label>
+</sc-if>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 12px;">
+<h3 style="margin: 0; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #667080;">Situação da {{formRev.nova}}</h3>
+<div data-l="grade" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px 16px;">
+<div style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+<label for="ac-f-status" style="font-size: 13px; font-weight: 600; color: #374151;">Status</label>
+<select id="ac-f-status" value="{{status}}" onChange="{{setStatus}}" aria-invalid="{{err.status}}" style="{{est.status}}">
+<option value="">Selecione</option>
+<option value="Em elaboração">Em elaboração</option>
+<option value="Aprovado">Aprovado</option>
+<option value="Cancelado">Cancelado</option>
+</select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+<label for="ac-f-fase" style="font-size: 13px; font-weight: 600; color: #374151;">Etapa</label>
+<select id="ac-f-fase" value="{{fase}}" onChange="{{setFase}}" aria-invalid="{{err.fase}}" disabled="{{faseFixa}}" title="{{faseDica}}" style="{{estFase}}">
+<option value="">Selecione</option>
+<option value="EST">Estudo Preliminar</option>
+<option value="ANT">Anteprojeto</option>
+<option value="BAS">Projeto Básico</option>
+<option value="EXE">Projeto Executivo</option>
+<option value="OBR" disabled="{{faseProj}}">Obra</option>
+<option value="ASB">As Built</option>
+<option value="MAN" disabled="{{faseProj}}">Uso e Manutenção</option>
+<option value="NA" disabled="{{faseProj}}">Não se Aplica</option>
+</select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+<label for="ac-f-acesso" style="font-size: 13px; font-weight: 600; color: #374151;">Acesso</label>
+<select id="ac-f-acesso" value="{{acesso}}" onChange="{{setAcesso}}" aria-invalid="{{err.acesso}}" style="{{est.acesso}}">
+<option value="">Selecione</option>
+<option value="Público">Público</option>
+<option value="Acesso controlado">Acesso controlado</option>
+<option value="Informação classificada">Informação classificada</option>
+</select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+<label for="ac-f-sigilo" style="font-size: 13px; font-weight: 600; color: #374151;">Grau de sigilo</label>
+<select id="ac-f-sigilo" value="{{sigilo}}" onChange="{{setSigilo}}" aria-invalid="{{err.sigilo}}" style="{{estSigiloF}}" disabled="{{semSigilo}}">
+<option value="">Selecione</option>
+<option value="Reservada">Reservada</option>
+<option value="Secreta">Secreta</option>
+<option value="Ultrassecreta">Ultrassecreta</option>
+</select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+<label for="ac-f-ticket" style="font-size: 13px; font-weight: 600; color: #374151;">Número do ticket</label>
+<input id="ac-f-ticket" type="text" autocomplete="off" value="{{ticket}}" onChange="{{setTicket}}" placeholder="Opcional" aria-invalid="{{err.ticket}}" style="{{est.ticket}}">
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 6px;">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+<label for="ac-f-coment" style="font-size: 13px; font-weight: 600; color: #374151;">Descrição <span style="font-weight: 400; color: #667080;">(opcional)</span></label>
+<span style="font-size: 12px; color: #667080; font-variant-numeric: tabular-nums;">{{contadorComentario}}</span>
+</div>
+<textarea id="ac-f-coment" rows="4" maxlength="500" value="{{comentario}}" onChange="{{setComentario}}" placeholder="{{placeholderComentario}}" style="{{estComentarioF}}"></textarea>
+</section>
+</div>
+</sc-if>
+
+<div style="flex: none; padding: 14px 24px; border-top: 1px solid #E8EBF0; display: flex; align-items: center; gap: 10px;">
+<sc-if value="{{flash.form}}" hint-placeholder-val="{{false}}"><span role="status" style="{{flash.estilo}}"><sc-if value="{{flash.ok}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg></sc-if><sc-if value="{{flash.alerta}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5"></path><path d="M12 16.4h.01"></path></svg></sc-if><span style="min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{flash.msg}}</span></span></sc-if><span role="alert" style="flex: 1 1 auto; min-width: 0; font-size: 13px; color: #B42318; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{avisoFormTexto}}</span>
+<button type="button" data-hover="suave" onClick="{{fecharForm}}" style="flex: none; height: 38px; padding: 0 16px; border-radius: 8px; border: none; background: transparent; color: #525C69; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;">Cancelar</button>
+<button type="button" data-hover="primario" onClick="{{salvar}}" style="flex: none; display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 18px; border-radius: 8px; border: none; background: #6E7783; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; letter-spacing: 0.01em; cursor: pointer; "><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4"></path><path d="m7 9 5-5 5 5"></path><path d="M5 20h14"></path></svg>{{botaoSalvar}}</button>
+</div>
+</div>
+
+<sc-if value="{{sucessoAberto}}" hint-placeholder-val="{{false}}">
+<div role="status" style="position: absolute; inset: 0; border-radius: 14px; background: #FFFFFF; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; box-sizing: border-box; text-align: center;">
+<span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 88px; height: 88px; border-radius: 50%; background: #E7F6EE; color: #1E7A47; box-shadow: 0 0 0 10px #F3FBF6;">
+<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg>
+</span>
+<span style="margin-top: 32px; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; color: #1F2937;">{{suc.titulo}}</span>
+<span style="margin-top: 8px; font-size: 14.5px; color: #525C69;">{{suc.descricao}}</span>
+<div style="width: 100%; max-width: 560px; margin-top: 36px; display: flex; flex-direction: column; gap: 8px; text-align: left;">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.02em; color: #667080;">Nome do arquivo no acervo</span>
+<div style="display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 14px; border-radius: 10px; background: #F4F7F6; border: 1px solid #E8EBF0;">
+<span style="flex: 1; min-width: 0; font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; font-weight: 500; color: #1F2937; overflow-wrap: anywhere;">{{suc.nome}}</span>
+<button type="button" data-hover="secundario" onClick="{{suc.copiar}}" style="flex: none; height: 30px; padding: 0 12px; border-radius: 6px; border: 1px solid #E3E7ED; background: #FFFFFF; color: #374151; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer;">Copiar</button>
+</div>
+</div>
+<div style="height: 26px; margin-top: 10px; display: flex; justify-content: center;"><sc-if value="{{flash.sucesso}}" hint-placeholder-val="{{false}}"><span role="status" style="{{flash.estilo}}"><sc-if value="{{flash.ok}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg></sc-if><sc-if value="{{flash.alerta}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5"></path><path d="M12 16.4h.01"></path></svg></sc-if><span style="min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{flash.msg}}</span></span></sc-if></div>
+<button type="button" data-hover="primario" onClick="{{fecharSucesso}}" style="margin-top: 4px; min-width: 160px; height: 42px; padding: 0 28px; border-radius: 8px; border: none; background: #6E7783; color: #FFFFFF; font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg>Concluir</button>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{edClassifAberto}}" hint-placeholder-val="{{false}}">
+<div onClick="{{fecharFundoEd}}" onKeyDown="{{teclaModal}}" style="position: fixed; inset: 0; z-index: 55; background: rgba(15, 23, 35, 0.42); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: flex; align-items: flex-start; justify-content: center; padding: 48px 16px; box-sizing: border-box; overflow-y: auto;">
+<div role="dialog" aria-modal="true" aria-labelledby="cl-titulo" style="width: 100%; max-width: 600px; background: #FFFFFF; border-radius: 14px; box-shadow: 0 24px 64px rgba(15, 23, 35, 0.28); display: flex; flex-direction: column;">
+<div style="padding: 20px 24px 16px; border-bottom: 1px solid #E8EBF0; display: flex; align-items: flex-start; gap: 12px;">
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+<h2 id="cl-titulo" style="margin: 0; font-size: 19px; font-weight: 700;">Corrigir Classificação</h2>
+<p style="margin: 0; font-size: 13.5px; color: #667080;">{{clSubtitulo}}</p>
+</div>
+<button type="button" data-hover="suave" onClick="{{fecharEd}}" aria-label="Fechar" style="flex: none; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; border: none; background: transparent; color: #525C69; cursor: pointer; padding: 0;">
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+</button>
+</div>
+<div style="padding: 20px 24px 22px; display: flex; flex-direction: column; gap: 18px;">
+<div style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 8px; background: #FFF6E5; border: 1px solid #F2DDB0; font-size: 13px; line-height: 1.5; color: #5C3D00;">
+<span>Use apenas para corrigir um cadastro. Todos os arquivos deste documento serão renomeados; o número sequencial será mantido.</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px;">
+<div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px; position: relative;">
+<label for="ac-c-predio" style="font-size: 13px; font-weight: 600; color: #374151;">Prédio ou unidade</label>
+<input id="ac-c-predio" type="text" role="combobox" aria-autocomplete="list" aria-expanded="{{cp.aberto}}" aria-controls="ac-c-lista" autocomplete="off" value="{{cp.txt}}" onChange="{{cp.onChange}}" onFocus="{{cp.onFocus}}" onBlur="{{cp.onBlur}}" onKeyDown="{{cp.onKeyDown}}" style="{{est.predio}}">
+<sc-if value="{{cp.aberto}}" hint-placeholder-val="{{false}}">
+<div id="ac-c-lista" role="listbox" aria-label="Prédios" style="position: absolute; top: 68px; left: 0; right: 0; z-index: 5; max-height: 240px; overflow-y: auto; background: #FFFFFF; border: 1px solid #E3E7ED; border-radius: 10px; box-shadow: 0 12px 32px rgba(15, 23, 35, 0.16); padding: 4px 0;">
+<sc-for list="{{cp.opcoes}}" as="po" hint-placeholder-count="5">
+<button type="button" role="option" aria-selected="{{po.ativo}}" tabindex="-1" onMouseDown="{{po.escolher}}" style="{{po.estilo}}"><span style="flex: 1; min-width: 0;">{{po.nome}}</span><span style="flex: none; font-size: 11.5px; color: #667080;">{{po.tag}}</span></button>
+</sc-for>
+<sc-if value="{{cp.semOpcao}}" hint-placeholder-val="{{false}}"><div style="padding: 10px 14px; font-size: 13px; color: #667080;">Nenhum prédio encontrado.</div></sc-if>
+</div>
+</sc-if>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px;">
+<label for="ac-c-disc" style="font-size: 13px; font-weight: 600; color: #374151;">Disciplina</label>
+<select id="ac-c-disc" value="{{disc}}" onChange="{{setDisc}}" style="{{est.disc}}">
+<option value="">Selecione</option>
+<option value="ARQ">Arquitetura</option>
+<option value="CIV">Civil</option>
+<option value="ELE">Elétrica</option>
+<option value="TEL">Telecomunicações</option>
+<option value="MEC">Mecânica</option>
+</select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px;">
+<label for="ac-c-tipo" style="font-size: 13px; font-weight: 600; color: #374151;">Tipo de documento</label>
+<select id="ac-c-tipo" value="{{tipo}}" onChange="{{setTipo}}" style="{{est.tipo}}">
+<option value="">Selecione</option>
+<optgroup label="Projeto">
+<option value="PRA">Prancha (desenho técnico)</option>
+<option value="MEM">Memorial descritivo</option>
+<option value="MC">Memória de cálculo</option>
+<option value="ET">Especificação técnica</option>
+<option value="LIS">Lista de materiais e quantitativos</option>
+</optgroup>
+<optgroup label="Execução">
+<option value="RDO">Relatório diário de obra</option>
+<option value="MED">Medição</option>
+<option value="CRO">Cronograma</option>
+<option value="TRB">Termo de recebimento</option>
+</optgroup>
+<optgroup label="Manutenção e inspeção">
+<option value="LAU">Laudo</option>
+<option value="REL">Relatório técnico</option>
+<option value="PT">Parecer / nota técnica</option>
+<option value="POP">Procedimento</option>
+<option value="PMN">Plano de manutenção</option>
+<option value="MAN">Manual / catálogo técnico</option>
+</optgroup>
+<optgroup label="Administrativo">
+<option value="ART">ART/RRT</option>
+<option value="ORC">Orçamento</option>
+<option value="TR">Termo de referência</option>
+<option value="OS">Ordem de serviço</option>
+<option value="OF">Ofício</option>
+<option value="ATA">Ata</option>
+<option value="ALV">Alvará / licença</option>
+</optgroup>
+</select>
+</div>
+<div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px;">
+<label for="ac-c-sis" style="font-size: 13px; font-weight: 600; color: #374151;">Assunto</label>
+<select id="ac-c-sis" value="{{sis}}" onChange="{{setSis}}" disabled="{{semDisc}}" aria-invalid="{{err.sis}}" style="{{estSis}}">
+<option value="">{{sisPh}}</option>
+<sc-for list="{{sisOpcoes}}" as="so" hint-placeholder-count="5"><option value="{{so.v}}" disabled="{{so.sep}}">{{so.t}}</option></sc-for>
+</select>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px;">
+<label for="ac-c-just" style="font-size: 13px; font-weight: 600; color: #374151;">Justificativa</label>
+<textarea id="ac-c-just" rows="2" maxlength="300" value="{{justificativa}}" onChange="{{setJustificativa}}" placeholder="Ex.: cadastrado como Arquitetura por engano; o conteúdo é de Elétrica." style="{{estJust}}"></textarea>
+</div>
+<div style="display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; padding: 12px 14px; border-radius: 8px; background: #F5F7FA; font-size: 13px;">
+<span style="color: #6E7885;">Código atual</span><span style="font-family: 'IBM Plex Mono', monospace; overflow-wrap: anywhere;">{{clAntes}}</span>
+<span style="color: #6E7885;">Novo código</span><span style="font-family: 'IBM Plex Mono', monospace; overflow-wrap: anywhere; color: #5A6370; font-weight: 500;">{{clDepois}}</span>
+</div>
+</div>
+<div style="padding: 16px 24px; border-top: 1px solid #E8EBF0; background: #FAFBFC; border-radius: 0 0 14px 14px; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px;">
+<sc-if value="{{edTemAviso}}" hint-placeholder-val="{{false}}"><span role="alert" style="flex: 1 1 200px; font-size: 13px; color: #B42318;">{{edAviso}}</span></sc-if>
+<button type="button" data-hover="secundario" onClick="{{fecharEd}}" style="height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid #D8DEE5; background: #FFFFFF; color: #374151; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;">Cancelar</button>
+<button type="button" data-hover="primario" onClick="{{salvarClassif}}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: 8px; border: 1px solid #6E7783; background: #6E7783; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg>Corrigir e renomear</button>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{loginAberto}}" hint-placeholder-val="{{false}}">
+<div onClick="{{fecharFundoLogin}}" onKeyDown="{{teclaModal}}" style="position: fixed; inset: 0; z-index: 60; background: rgba(15, 23, 35, 0.42); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; padding: 24px 16px; box-sizing: border-box; overflow-y: auto;">
+<div role="dialog" aria-modal="true" aria-labelledby="login-titulo" aria-describedby="login-texto" style="position: relative; width: 100%; max-width: 400px; margin: auto 0; background: #FFFFFF; border-radius: 16px; box-shadow: 0 24px 64px rgba(15, 23, 35, 0.28); overflow: hidden;">
+<button type="button" data-hover="suave" onClick="{{fecharLogin}}" aria-label="Fechar" style="position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; border: none; background: transparent; color: #6E7885; cursor: pointer; padding: 0;">
+<svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+</button>
+<div style="padding: 32px 32px 0; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;">
+<span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 12px; background: #F1F2F4; color: #5A6370;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="9.5" rx="2.2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path><path d="M12 14.5v2"></path></svg></span>
+<div style="display: flex; flex-direction: column; gap: 4px;">
+<h2 id="login-titulo" style="margin: 0; font-size: 19px; font-weight: 700; color: #1F2937;">Entrar no Acervo Técnico</h2>
+<p id="login-texto" style="margin: 0; max-width: 300px; font-size: 13.5px; line-height: 1.5; color: #667080;">{{loginTexto}}</p>
+</div>
+</div>
+<div style="padding: 24px 32px 0; display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; flex-direction: column; gap: 6px;">
+<label for="ac-usuario" style="font-size: 13px; font-weight: 600; color: #374151;">Usuário da rede</label>
+<div style="position: relative;">
+<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#97A0AC" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 13px; top: 13px; pointer-events: none;"><circle cx="12" cy="8.5" r="3.6"></circle><path d="M4.8 19.5c1.3-3.2 4-4.9 7.2-4.9s5.9 1.7 7.2 4.9"></path></svg>
+<input id="ac-usuario" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" value="{{loginUsuario}}" onChange="{{setLoginUsuario}}" onKeyDown="{{teclaLogin}}" placeholder="ex.: mdiehl" aria-invalid="{{loginErroUsuario}}" style="{{estLoginUsuario}}">
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px;">
+<label for="ac-senha" style="font-size: 13px; font-weight: 600; color: #374151;">Senha</label>
+<div style="position: relative;">
+<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#97A0AC" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 13px; top: 13px; pointer-events: none;"><rect x="5" y="10.5" width="14" height="9.5" rx="2.2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg>
+<input id="ac-senha" type="{{tipoSenha}}" autocomplete="current-password" value="{{loginSenha}}" onChange="{{setLoginSenha}}" onKeyDown="{{teclaLogin}}" aria-invalid="{{loginErroSenha}}" style="{{estLoginSenha}}">
+<button type="button" data-hover="suave" onClick="{{alternarSenha}}" aria-label="{{rotuloVerSenha}}" title="{{rotuloVerSenha}}" style="position: absolute; right: 5px; top: 5px; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; border-radius: 7px; background: transparent; color: #667080; cursor: pointer; padding: 0;">
+<sc-if value="{{senhaOculta}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg></sc-if>
+<sc-if value="{{senhaVisivel}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 5.6A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-2.6 3.4"></path><path d="M6.4 6.9C3.9 8.6 2.5 12 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4.3-1.1"></path><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path><path d="m3 3 18 18"></path></svg></sc-if>
+</button>
+</div>
+</div>
+<sc-if value="{{temLoginErro}}" hint-placeholder-val="{{false}}"><div role="alert" style="display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; background: #FEF3F2; border: 1px solid #F6CFCB; color: #B42318; font-size: 13px;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5"></path><path d="M12 16.4h.01"></path></svg>{{loginErro}}</div></sc-if>
+</div>
+<div style="padding: 20px 32px 0;">
+<button type="button" data-hover="primario" onClick="{{entrar}}" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; border-radius: 10px; border: none; background: #5A6370; color: #FFFFFF; font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer;">Entrar</button>
+</div>
+<div style="margin: 20px 32px 0; padding: 10px 12px; border-radius: 10px; border: 1px dashed #D8DEE5; background: #FAFBFC; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+<label for="ac-perfil" style="display: flex; flex-direction: column; gap: 1px; font-size: 12.5px; font-weight: 600; color: #525C69;">Perfil de acesso<span style="font-size: 11.5px; font-weight: 400; color: #6E7885;">Só no protótipo · no sistema vem da rede</span></label>
+<select id="ac-perfil" value="{{loginPerfil}}" onChange="{{setLoginPerfil}}" style="height: 32px; padding: 0 8px; border-radius: 8px; border: 1px solid #E3E7ED; font: inherit; font-size: 13px; color: #374151; background: #FFFFFF; box-sizing: border-box;">
+<option value="tecnico">Técnico</option>
+<option value="gestor">Gestor do acervo</option>
+</select>
+</div>
+<div aria-hidden="true" style="height: 28px;"></div>
+</div>
+</div>
+</sc-if>
+
+
+</div>
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/motor.js"></script>
+<script src="js/acervo.js"></script>
+</body>
+</html>

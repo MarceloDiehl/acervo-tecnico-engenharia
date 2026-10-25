@@ -1,0 +1,104 @@
+/* Acervo Técnico de Engenharia · DIPRED-DMAN · TJRS */
+html, body { margin: 0; background: #F4F7F6; }
+
+/* ------------------------------------------------------------------
+   Compatibilidade com o Bootstrap 5.3
+   O Bootstrap é carregado como base do projeto (reboot, grid, utilitários
+   e componentes). As regras abaixo anulam os ajustes do "reboot" que
+   mudariam o desenho atual das telas, para que o layout fique idêntico.
+   ------------------------------------------------------------------ */
+#app, #app *, #app *::before, #app *::after { box-sizing: content-box; }
+#app :is(button, select, meter, progress, input[type="button"], input[type="submit"], input[type="reset"], input[type="checkbox"], input[type="radio"]) { box-sizing: border-box; }
+#app [type="search"] { -webkit-appearance: auto; appearance: auto; outline-offset: 0; }
+#app :is(h1, h2, h3, h4, h5, h6) { margin: 0; line-height: inherit; font-weight: inherit; font-size: inherit; color: inherit; }
+#app :is(p, ol, ul, dl, dd, figure, blockquote, pre) { margin: 0; }
+#app :is(ol, ul) { padding: 0; }
+#app dt { font-weight: inherit; }
+#app label { display: inline; margin: 0; }
+#app legend { float: none; width: auto; padding: 0; margin: 0; font-size: inherit; line-height: inherit; }
+#app :is(button, input, select, textarea, optgroup) { margin: 0; font-family: inherit; font-size: inherit; line-height: normal; color: inherit; }
+#app button { border-radius: 0; text-transform: none; }
+#app textarea { line-height: inherit; }
+#app :is(b, strong) { font-weight: bolder; }
+#app a { color: inherit; text-decoration: none; }
+#app svg { vertical-align: baseline; }
+#app [role="button"], #app button:not(:disabled) { cursor: pointer; }
+
+/* ---------- estilos das telas ---------- */
+body{margin:0}
+a{color:#5A6370}a:hover{color:#5A6370}
+button:focus-visible,a:focus-visible,label:focus-visible{outline:2px solid #5A6370;outline-offset:2px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#5A6370 !important;box-shadow:0 0 0 3px rgba(90, 99, 112,.18) !important}
+input::placeholder,textarea::placeholder{color:#7A8492}
+input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none}
+[data-hover]{transition:background-color .12s ease,border-color .12s ease,color .12s ease}
+@keyframes avisoSomeA{0%{opacity:0}6%{opacity:1}80%{opacity:1}100%{opacity:0}}
+@keyframes avisoSomeB{0%{opacity:0}6%{opacity:1}80%{opacity:1}100%{opacity:0}}
+[data-hover="linha"]:hover{background:#F7F8F9 !important}
+[data-hover="primario"]{box-shadow:0 1px 2px rgba(16,24,40,.16),inset 0 1px 0 rgba(255,255,255,.14);transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease}
+[data-hover="primario"]:hover{background:#5F6874 !important;border-color:#5F6874 !important}
+[data-hover="secundario"]{box-shadow:0 1px 2px rgba(16,24,40,.06);transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease}
+[data-hover="filtroativo"]:hover{background:rgba(90,99,112,.16) !important;border-color:rgba(90,99,112,.3) !important}
+[data-hover="auth"]{transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease}
+[data-hover="secundario"]:hover{background:#F3F5F8 !important;border-color:#BCC4CE !important}
+[data-hover="suave"]:hover{background:#F0F3F7 !important}
+[data-hover="conta"]{transition:background-color .15s ease,border-color .15s ease}
+[data-hover="conta"]:hover{background:#F0F3F7 !important;border-color:#D3D9E0 !important}
+[data-hover="sair"]:hover{background:#FEF3F2 !important}
+[data-hover="perigo"]:hover{background:#912018 !important}
+[data-hover="excluir"]:hover{background:#FEF3F2 !important;border-color:#F0B4AE !important}
+[data-l="raiz"]{min-height:100vh;display:flex;flex-direction:column}
+[data-l="modal-g"]{height:816px}
+@media (max-height: 880px){[data-l="modal-g"]{height:calc(100vh - 32px)}[data-l="form-corpo"]{justify-content:flex-start !important;gap:16px !important;padding-top:14px !important;padding-bottom:14px !important}[data-l="form-corpo"] input:not([type=file]),[data-l="form-corpo"] select{height:36px !important}[data-l="form-corpo"] [data-l="drop"]{height:58px !important}[data-l="form-corpo"] [data-l="grade"]{row-gap:8px !important}[data-l="fundo-g"]{padding-top:16px !important;padding-bottom:16px !important}}
+[data-l="corpo"]{flex:1 0 auto;display:flex;flex-direction:column}
+[data-l="principal"]{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:14px}
+[data-l="lista"]{display:flex;flex-direction:column}
+[data-l="rolagem"]{overflow:auto}
+[data-l="tabela"]>[data-l="linha"]:last-child{border-bottom-color:transparent !important}
+[data-l="linha"]:nth-last-child(1 of [data-l="linha"]){border-bottom-color:transparent !important}
+[data-hover="codigo"]:hover{background:#F1F3F6 !important;border-color:#C6CFDB !important}
+[data-l="det-faixa"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+[data-l="det-faixa4"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width: 760px){[data-l="det-faixa4"]{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (min-width: 640px){[data-l="det-faixa"]{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (min-width: 960px){[data-l="det-faixa"]{grid-template-columns:repeat(7,minmax(0,1fr))}}
+[data-l="filtros"]{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+[data-l="pilulas"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (min-width: 700px){[data-l="pilulas"]{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media (min-width: 1100px){[data-l="pilulas"]{grid-template-columns:repeat(5,148px)}}
+@media (min-width: 1100px){[data-l="filtros"]{grid-template-columns:minmax(0,1fr) auto;gap:10px}}
+[data-hover="olho"]:hover{background:#2E9E5B !important;color:#FFFFFF !important}
+[data-hover="linhasel"]{}
+@media (min-width: 900px) and (min-height: 560px){
+[data-l="raiz"]{height:100vh;min-height:0;overflow:hidden}
+[data-l="corpo"]{flex:1 1 auto;min-height:0}
+[data-l="principal"]{min-height:0}
+[data-l="lista"]{flex:1 1 auto;min-height:0}
+[data-l="rolagem"]{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+[data-l="rolagem"]>[data-l="tabela"]{flex:1 0 auto;display:flex;flex-direction:column}
+[data-l="tabela"]>*{flex-shrink:0}
+[data-l="tabela"]>[data-l="vazio"]{flex:1 1 auto}
+}
+@media (max-height: 820px){
+[data-l="desc"]{height:84px !important;min-height:84px !important;max-height:84px !important}
+}
+[data-hover="pilula"]:hover{background:#F4F7F6 !important;color:#5A6370 !important}
+[data-hover="auth"]:hover{background:rgba(90, 99, 112,.16) !important;border-color:rgba(90, 99, 112,.3) !important}
+[data-hover="credito"]:hover{color:#5A6370 !important;text-decoration:underline}
+[data-hover="link"]:hover{text-decoration:underline}
+[data-hover="col"]:hover{color:#5A6370 !important}
+[data-hover="baixar"]:hover{background:#F1F2F4 !important;color:#1F2937 !important;border-color:#E3E7ED !important}
+@media (max-width: 759px){
+[data-l="tabela"]{min-width:0 !important}
+[data-l="cab"]{display:none !important}
+[data-l="linha"]{height:auto !important;align-items:flex-start !important;padding:12px 10px 12px 0 !important}
+[data-l="linha-btn"]{display:flex !important;flex-wrap:wrap !important;align-items:center !important;gap:6px 10px !important;padding-left:12px !important}
+[data-l="c-seq"]{order:0}
+[data-l="c-status"]{order:1}
+[data-l="c-doc"]{order:2;flex:1 1 100% !important}
+[data-l="c-predio"]{order:3;flex:1 1 100% !important}
+[data-l="c-disc"],[data-l="c-rev"],[data-l="c-data"]{order:4;font-size:12px !important;color:#667080 !important}
+[data-l="c-doc"] span{white-space:normal !important}
+[data-l="c-acoes"]{width:auto !important;margin-left:4px !important;flex-direction:column-reverse !important}
+[data-l="pagina-faixa"]{display:none}
+}

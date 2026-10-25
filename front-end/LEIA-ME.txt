@@ -1,0 +1,21 @@
+Acervo Técnico de Engenharia · protótipo em HTML, CSS, JavaScript e Bootstrap
+DIPRED-DMAN · TJRS
+
+Estrutura
+  index.html      página única: carrega Bootstrap 5.3.3, fontes, o CSS e os scripts.
+                  O modelo das telas fica em <script type="text/x-template" id="tela">.
+  css/acervo.css  estilos das telas + ajustes que neutralizam o "reboot" do Bootstrap,
+                  para o layout ficar idêntico ao protótipo aprovado.
+  js/motor.js     motor das telas em JavaScript puro (sem React, sem dependências):
+                  monta o HTML a partir do estado, liga os eventos e atualiza só o que mudou.
+  js/acervo.js    regras e dados de exemplo: classificação, prédios, tipos, status,
+                  revisões, edição, correção, exclusão/lixeira, sigilo e avisos.
+
+Como abrir
+  Abra o index.html no navegador (duplo clique) ou sirva a pasta em qualquer servidor web.
+
+No projeto Spring Boot
+  Copie a pasta para src/main/resources/static/acervo/ (ou troque os links do Bootstrap
+  pelos arquivos locais/WebJars, se a rede do TJRS bloquear CDN).
+  Os dados de exemplo vêm de gerarAcervo() em js/acervo.js; no sistema real, troque por
+  chamadas à API REST (fetch) nos pontos de inclusão, edição, correção e exclusão.
