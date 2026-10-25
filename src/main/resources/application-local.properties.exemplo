@@ -4,7 +4,7 @@
 spring.datasource.username=dipred_user
 spring.datasource.password=SENHA_DO_MYSQL
 
-# Senha do primeiro gestor ("admin"), criado quando a tabela de usuarios esta vazia
+# Senha do gestor "admin", criado ao iniciar quando ainda nao existe
 acervo.admin.senha-inicial=SENHA_DO_ADMIN
 
 # No servidor, apontar para a pasta definitiva dos arquivos, ex.:

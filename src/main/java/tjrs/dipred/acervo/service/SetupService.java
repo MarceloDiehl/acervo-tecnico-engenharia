@@ -40,8 +40,8 @@ public class SetupService implements CommandLineRunner {
         int criadas = arquivoService.prepararEstrutura(predioRepository.findAll(), disciplinaRepository.findAll());
         System.out.println(">>> Pastas do acervo em " + arquivoService.getRaiz() + (criadas > 0 ? " (" + criadas + " criadas)" : ""));
 
-        /* primeiro gestor, quando ainda não há nenhum usuário */
-        if (usuarioRepository.count() == 0 && !senhaInicialAdmin.isBlank()) {
+        /* gestor "admin", quando ele ainda não existe (como no dipred_dman) */
+        if (usuarioRepository.findByUsername("admin").isEmpty() && !senhaInicialAdmin.isBlank()) {
             Usuario admin = new Usuario();
             admin.setUsername("admin");
             admin.setNomeCompleto("Gestor do acervo");
